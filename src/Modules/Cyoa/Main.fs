@@ -92,9 +92,11 @@ let reduce (msg: Msg) (state: State): State =
                 state
 
     | ComponentInteractionCreateEventHandler(client, e, replyChannel) ->
+        let commandPrefix = "."
         let result =
             IfEngine.Discord.Index.modalHandle
                 messageCyoaId
+                (sprintf "%s%s" commandPrefix MainAction.Parser.CommandNames.startCyoa)
                 (fun userId gameCommand ->
                     let send msg =
                         let embed = Entities.DiscordEmbedBuilder()

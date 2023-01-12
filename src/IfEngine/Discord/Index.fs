@@ -120,9 +120,7 @@ module ModalReturn =
             UpdatedGameState = updateGameState
         }
 
-let modalHandle messageTypeId updateGame (client: DiscordClient) (e: EventArgs.ComponentInteractionCreateEventArgs) =
-    let commandName = "TODO" // TODO
-
+let modalHandle messageTypeId commandName updateGame (client: DiscordClient) (e: EventArgs.ComponentInteractionCreateEventArgs) =
     let restartComponent errMsg =
         DiscordMessage.Ext.clearComponents e.Message
 
