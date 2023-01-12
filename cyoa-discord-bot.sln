@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "cyoa-discord-bot", "src\cyoa-discord-bot.fsproj", "{A01053FC-ABD3-4A9D-B17D-A99CCE7420B3}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "tests", "tests\tests.fsproj", "{FCEF5C3F-6270-450A-8DA0-CF0D75894ACD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A01053FC-ABD3-4A9D-B17D-A99CCE7420B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A01053FC-ABD3-4A9D-B17D-A99CCE7420B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A01053FC-ABD3-4A9D-B17D-A99CCE7420B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A01053FC-ABD3-4A9D-B17D-A99CCE7420B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCEF5C3F-6270-450A-8DA0-CF0D75894ACD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCEF5C3F-6270-450A-8DA0-CF0D75894ACD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCEF5C3F-6270-450A-8DA0-CF0D75894ACD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCEF5C3F-6270-450A-8DA0-CF0D75894ACD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
