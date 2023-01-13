@@ -168,6 +168,16 @@ let reduce (msg: Msg) (state: State): State =
         result.UpdatedGameState
         |> Option.defaultValue state
 
+let reduceError msg =
+    match msg with
+    | Request(e, cmd) ->
+        match cmd with
+        | MainActionCmd x ->
+            match x with
+            | StartCyoa -> ()
+    | ComponentInteractionCreateEventHandler(_, _, r) ->
+        r.Reply true
+
 let create db =
     let m =
         let init: State = {
@@ -183,6 +193,7 @@ let create db =
                         try
                             reduce msg state
                         with e ->
+                            reduceError msg
                             printfn "%A" e
                             state
 
