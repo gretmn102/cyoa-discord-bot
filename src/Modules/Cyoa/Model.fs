@@ -4,6 +4,39 @@ open MongoDB.Driver
 open MongoDB.Bson
 
 open Types
+
+module Db =
+    open MongoDB.Bson.Serialization
+    open Newtonsoft.Json
+
+    // TODO: refact: replace `DiscordBotExtension.Db.MapSerializer` on `DiscordBotExtension.Db.NewtonsoftSerializer`
+    /// Serializes and deserializes any F# types with `Newtonsoft.Json.JsonConvert`.
+    /// Usage:
+    /// ```fsharp
+    /// MongoDB.Bson.Serialization.BsonSerializer.RegisterSerializer(
+    ///     typeof<SomeComplexFSharpType>,
+    ///     new NewtonsoftSerializer<SomeComplexFSharpType>()
+    /// )
+    /// ```
+    type NewtonsoftSerializer<'a>() =
+        inherit Serializers.SerializerBase<'a>()
+        // https://stackoverflow.com/questions/47510650/c-sharp-mongodb-complex-class-serialization
+        override __.Deserialize(context, args) =
+            let serializer = BsonSerializer.LookupSerializer(typeof<BsonDocument>)
+            let document = serializer.Deserialize(context, args)
+
+            let bsonDocument = document.ToBsonDocument()
+
+            let result = BsonExtensionMethods.ToJson(bsonDocument)
+            JsonConvert.DeserializeObject<'a>(result)
+
+        override __.Serialize(context, args, value) =
+            let jsonDocument = JsonConvert.SerializeObject(value)
+            let bsonDocument = BsonSerializer.Deserialize<BsonDocument>(jsonDocument)
+
+            let serializer = BsonSerializer.LookupSerializer(typeof<BsonDocument>)
+            serializer.Serialize(context, bsonDocument.AsBsonValue)
+
 open Db
 
 module MoraiGame =
@@ -738,59 +771,33 @@ module Users =
             Guild.create id GuildData.Empty
 
         let init collectionName (db: IMongoDatabase): Guilds =
-            // todo: make IfEngine.Interpreter.State serialize correctly
-            // CommonDb.GuildData.init
-            //     createData
-            //     (fun ver doc ->
-            //         match ver with
-            //         | Some ver ->
-            //             match ver with
-            //             | Version.V0 ->
-            //                 None, Serialization.BsonSerializer.Deserialize<Guild>(doc)
-            //             | x ->
-            //                 failwithf "Version = %A not implemented\n%A" x doc
-            //         | None ->
-            //             failwithf "Version is empty:\n%A" doc
-            //     )
-            //     collectionName
-            //     db
-            let collection = db.GetCollection<BsonDocument>(collectionName)
-            {
-                Cache = Map.empty
-                Collection = collection
-            }
+            MongoDB.Bson.Serialization.BsonSerializer.RegisterSerializer(
+                typeof<MoraiGame.State>,
+                new NewtonsoftSerializer<MoraiGame.State>()
+            )
 
-        let set userId setAdditionParams (guildData: Guilds) =
-            // todo: make IfEngine.Interpreter.State serialize correctly
-            // CommonDb.GuildData.set
-            //     createData
-            //     userId
-            //     setAdditionParams
-            //     guildData
-            let cache = guildData.Cache
+            CommonDb.GuildData.init
+                createData
+                (fun ver doc ->
+                    match ver with
+                    | Some ver ->
+                        match ver with
+                        | Version.V0 ->
+                            None, Serialization.BsonSerializer.Deserialize<Guild>(doc)
+                        | x ->
+                            failwithf "Version = %A not implemented\n%A" x doc
+                    | None ->
+                        failwithf "Version is empty:\n%A" doc
+                )
+                collectionName
+                db
 
-            let id = userId
-
-            {
-                guildData with
-                    Cache =
-                        match Map.tryFind id cache with
-                        | Some fullData ->
-                            let data =
-                                { fullData with
-                                    Data = setAdditionParams fullData.Data
-                                }
-
-                            Map.add id data cache
-                        | None ->
-                            let x =
-                                let x = createData id
-                                { x with
-                                    Data = setAdditionParams x.Data
-                                }
-
-                            Map.add id x cache
-            }
+        let set userId setAdditionParams (guildData: Guilds) : Guilds =
+            CommonDb.GuildData.set
+                createData
+                userId
+                setAdditionParams
+                guildData
 
         let drop (db: IMongoDatabase) (items: Guilds) =
             CommonDb.GuildData.drop db items
