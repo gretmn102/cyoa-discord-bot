@@ -2,43 +2,8 @@ module Cyoa.Model
 open FsharpMyExtension
 open MongoDB.Driver
 open MongoDB.Bson
-
 open DiscordBotExtensions.Types
-
-module Db =
-    open MongoDB.Bson.Serialization
-    open Newtonsoft.Json
-
-    // TODO: refact: replace `DiscordBotExtension.Db.MapSerializer` on `DiscordBotExtension.Db.NewtonsoftSerializer`
-    /// Serializes and deserializes any F# types with `Newtonsoft.Json.JsonConvert`.
-    /// Usage:
-    /// ```fsharp
-    /// MongoDB.Bson.Serialization.BsonSerializer.RegisterSerializer(
-    ///     typeof<SomeComplexFSharpType>,
-    ///     new NewtonsoftSerializer<SomeComplexFSharpType>()
-    /// )
-    /// ```
-    type NewtonsoftSerializer<'a>() =
-        inherit Serializers.SerializerBase<'a>()
-        // https://stackoverflow.com/questions/47510650/c-sharp-mongodb-complex-class-serialization
-        override __.Deserialize(context, args) =
-            let serializer = BsonSerializer.LookupSerializer(typeof<BsonDocument>)
-            let document = serializer.Deserialize(context, args)
-
-            let bsonDocument = document.ToBsonDocument()
-
-            let result = BsonExtensionMethods.ToJson(bsonDocument)
-            JsonConvert.DeserializeObject<'a>(result)
-
-        override __.Serialize(context, args, value) =
-            let jsonDocument = JsonConvert.SerializeObject(value)
-            let bsonDocument = BsonSerializer.Deserialize<BsonDocument>(jsonDocument)
-
-            let serializer = BsonSerializer.LookupSerializer(typeof<BsonDocument>)
-            serializer.Serialize(context, bsonDocument.AsBsonValue)
-
 open DiscordBotExtensions.Db
-open Db
 
 module MoraiGame =
     open IfEngine.Utils
