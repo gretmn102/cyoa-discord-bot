@@ -3,8 +3,9 @@ open IfEngine.Interpreter
 open IfEngine.Game
 open DSharpPlus
 open DSharpPlus.Entities
-open Extensions
-open Types
+open DiscordBotExtensions
+open DiscordBotExtensions.Extensions
+open DiscordBotExtensions.Types
 
 open IfEngine.Discord.Utils
 

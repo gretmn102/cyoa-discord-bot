@@ -2,7 +2,7 @@ module IfEngine.Discord.Utils
 open IfEngine.Types
 open IfEngine.Utils
 open DSharpPlus.Entities
-open Extensions
+open DiscordBotExtensions.Extensions
 
 type Text = DiscordEmbed
 

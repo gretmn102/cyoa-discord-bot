@@ -2,9 +2,10 @@ module Cyoa.Main
 open DSharpPlus
 open FsharpMyExtension
 open FsharpMyExtension.Either
+open DiscordBotExtensions
+open DiscordBotExtensions.Types
+open DiscordBotExtensions.Extensions
 
-open Types
-open Extensions
 open Model
 
 type State =
@@ -202,7 +203,7 @@ let create db =
             loop init
         )
 
-    { Shared.BotModule.empty with
+    { BotModule.empty with
         MessageCreateEventHandleExclude =
             let exec: _ Action.Parser.Parser =
                 Action.Parser.start (fun (client: DiscordClient, e: EventArgs.MessageCreateEventArgs) msg ->

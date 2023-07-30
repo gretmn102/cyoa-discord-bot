@@ -3,7 +3,7 @@ open FsharpMyExtension
 open MongoDB.Driver
 open MongoDB.Bson
 
-open Types
+open DiscordBotExtensions.Types
 
 module Db =
     open MongoDB.Bson.Serialization
@@ -37,6 +37,7 @@ module Db =
             let serializer = BsonSerializer.LookupSerializer(typeof<BsonDocument>)
             serializer.Serialize(context, bsonDocument.AsBsonValue)
 
+open DiscordBotExtensions.Db
 open Db
 
 module MoraiGame =

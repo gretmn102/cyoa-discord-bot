@@ -3,38 +3,11 @@ open FsharpMyExtension
 open FsharpMyExtension.Either
 open Microsoft.Extensions.Logging
 open System.Threading.Tasks
-
-open Types
-open Extensions
+open DiscordBotExtensions
+open DiscordBotExtensions.Types
+open DSharpPlus
 
 let botEventId = new EventId(42, "Bot-Event")
-
-let cmd pstart (client: DSharpPlus.DiscordClient) (e: DSharpPlus.EventArgs.MessageCreateEventArgs) =
-    let authorId = e.Author.Id
-    let botId = client.CurrentUser.Id
-
-    if authorId <> botId then
-        match pstart botId e.Message.Content with
-        | Right res ->
-            match res with
-            | CommandParser.Pass -> ()
-
-            | CommandParser.Unknown ->
-                let b = DSharpPlus.Entities.DiscordEmbedBuilder()
-                b.Description <-
-                    [
-                        "Неизвестная команда. Доступные команды:"
-                        Cyoa.Main.MainAction.Parser.CommandNames.startCyoa
-                    ] |> String.concat "\n"
-
-                b.Color <- DSharpPlus.Entities.Optional.FromValue(DiscordEmbed.backgroundColorDarkTheme)
-                awaiti (client.SendMessageAsync (e.Channel, b.Build()))
-
-            | CommandParser.MessageCreateEventHandler exec ->
-                exec (client, e)
-
-        | Left x ->
-            awaiti (client.SendMessageAsync (e.Channel, (sprintf "Ошибка:\n```\n%s\n```" x)))
 
 let initBotModules (db: MongoDB.Driver.IMongoDatabase) =
     [|
@@ -43,7 +16,7 @@ let initBotModules (db: MongoDB.Driver.IMongoDatabase) =
 
 open MongoDB.Driver
 let initDb () =
-    let dbConnection = getEnvironmentVariable "DbConnection"
+    let dbConnection = EnvironmentExt.getEnvironmentVariable "DbConnection"
 
     let settings =
         MongoClientSettings.FromConnectionString (dbConnection)
@@ -51,7 +24,7 @@ let initDb () =
     let client = new MongoClient(settings)
     let database =
         let dataBaseName =
-            getEnvironmentVariable "DataBaseName"
+            EnvironmentExt.getEnvironmentVariable "DataBaseName"
 
         client.GetDatabase(dataBaseName)
 
@@ -83,7 +56,7 @@ let startServer () =
 let main argv =
     let tokenEnvVar = "BotToken"
 
-    match tryGetEnvironmentVariable tokenEnvVar with
+    match EnvironmentExt.tryGetEnvironmentVariable tokenEnvVar with
     | None ->
         printfn "Environment variable `%s` is not set!" tokenEnvVar
         1
@@ -105,11 +78,26 @@ let main argv =
         let database = initDb ()
         let botModules = initBotModules database
 
+        let prefix = "."
+
         botModules
-        |> Shared.BotModule.bindToClientsEvents
-            CommandParser.initCommandParser
-            CommandParser.start
-            cmd
+        |> BotModule.bindToClientsEvents
+            prefix
+            (fun client e ->
+                let b = Entities.DiscordMessageBuilder()
+                let embed = Entities.DiscordEmbedBuilder()
+                embed.Description <-
+                    [
+                        "Доступны следующие команды:"
+                        Cyoa.Main.MainAction.Parser.CommandNames.startCyoa
+                    ]
+                    |> String.concat "\n"
+                b.Embed <- embed
+                awaiti <| e.Channel.SendMessageAsync(b)
+            )
+            (fun client e ->
+                ()
+            )
             (fun _ _ -> ())
             client
 
