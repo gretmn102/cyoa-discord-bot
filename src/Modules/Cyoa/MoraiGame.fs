@@ -1,19 +1,19 @@
 module Cyoa.MoraiGame
+open IfEngine
 open IfEngine.Utils
 open IfEngine.Types
-open IfEngine.Interpreter
-open IfEngine
 open IfEngine.Discord.Utils
+open FsharpMyExtension.ResultExt
 
 type CustomStatement = unit
 type CustomStatementArg = unit
 
-type LabelName = string
+type Label = string
 
 let mainMenuLoc = "MainMenu"
-let beginLoc: LabelName = mainMenuLoc
+let beginLoc: Label = mainMenuLoc
 
-let (scenario: Label<Text, LabelName, CustomStatement> list), vars =
+let (scenario: NamedBlock<Text, Label, CustomStatement> list), vars =
     let vars = Map.empty
     let getLoseCounter, updateLoseCounter, vars = createNumVar "losesCount" 0 vars
 
@@ -630,60 +630,24 @@ let (scenario: Label<Text, LabelName, CustomStatement> list), vars =
     |> fun scenario ->
         scenario, vars
 
-type State = State<Text, LabelName, CustomStatement>
+open IfEngine.Engine
+type State = State<Text, Label, CustomStatement>
+type CustomStatementOutput = unit
+type Engine = Engine<Text, Label, CustomStatement, CustomStatementArg, CustomStatementOutput>
 
-type Msg = Game.Msg<CustomStatement, CustomStatementArg>
-type Command = Command<Text, LabelName, CustomStatement, CustomStatementArg>
+let initGameState: State =
+    State.init
+        beginLoc
+        vars
 
-type Game =
-    {
-        InitState: State
-        InitCommand: Command
-        Update: Msg -> State -> (Command * State)
-    }
-
-let game: Game =
+let create (state: State) : Result<Engine, string> =
     let scenario =
         scenario
         |> List.map (fun (labelName, body) -> labelName, (labelName, body))
         |> Map.ofList
         : Scenario<_, _, _>
 
-    let initGameState: State =
-        {
-            LabelState =
-                LabelState.create
-                    beginLoc
-                    (Stack.createSimpleStatement 0)
-            Vars = vars
-        }
-
-    let interp (gameState: State) =
-        let addon state stack (isWin: CustomStatementArg) (customStatement: CustomStatement) =
-            failwith "custom statement"
-
-        let handle subIndex (customStatement: CustomStatement) =
-            failwithf "handle"
-
-        gameState
-        |> interp (addon, handle) scenario
-        |> function
-            | Ok x -> x
-            | Error err ->
-                failwithf "%s" err
-
-    let update (msg: Msg) (state: State) =
-        let gameState init =
-            {
-                Game.Game = interp init
-                Game.GameState = init
-                Game.SavedGameState = init
-            }
-        let x = Game.update interp initGameState msg (gameState state)
-        (x.Game: Command), (x.GameState: State)
-
-    {
-        InitState = initGameState
-        InitCommand = interp initGameState
-        Update = update
-    }
+    Engine.create
+        CustomStatementHandler.empty
+        scenario
+        state

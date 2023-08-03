@@ -2,16 +2,17 @@ module Cyoa.Main
 open DSharpPlus
 open FsharpMyExtension
 open FsharpMyExtension.Either
+open FsharpMyExtension.ResultExt
 open DiscordBotExtensions
 open DiscordBotExtensions.Types
 open DiscordBotExtensions.Extensions
+open IfEngine.Engine
 
 open Model
 
 type State =
     {
         Users: Users.Guilds
-        MoraiGame: MoraiGame.Game
     }
 
 type MainAction =
@@ -67,6 +68,11 @@ let reduce (msg: Msg) (state: State): State =
         | MainActionCmd x ->
             match x with
             | StartCyoa ->
+                let engine =
+                    MoraiGame.create MoraiGame.initGameState |> Result.get
+
+                let initOutputMsg = Engine.getCurrentOutputMsg engine
+
                 let msg =
                     IfEngine.Discord.Index.view
                         messageCyoaId
@@ -74,7 +80,7 @@ let reduce (msg: Msg) (state: State): State =
                         (fun _ ->
                             failwithf "handle custom statement not implemented"
                         )
-                        state.MoraiGame.InitCommand
+                        initOutputMsg
 
                 let state =
                     { state with
@@ -84,7 +90,7 @@ let reduce (msg: Msg) (state: State): State =
                                 e.Author.Id
                                 (fun x ->
                                     Users.GuildData.Init
-                                        (Some state.MoraiGame.InitState)
+                                        (Some engine.GameState)
                                 )
                     }
 
@@ -113,12 +119,14 @@ let reduce (msg: Msg) (state: State): State =
                     | Some user ->
                         match user.Data.GameState with
                         | Some gameState ->
-                            let command, gameState = state.MoraiGame.Update gameCommand gameState
+                            let engine =
+                                MoraiGame.create gameState |> Result.get // TODO
+                                |> Engine.update gameCommand |> Result.get
 
                             let userId = e.User.Id
 
                             let msg =
-                                command
+                                Engine.getCurrentOutputMsg engine
                                 |> IfEngine.Discord.Index.view
                                     messageCyoaId
                                     e.User.Id
@@ -132,9 +140,9 @@ let reduce (msg: Msg) (state: State): State =
                                         state.Users
                                         |> Users.Guilds.set
                                             userId
-                                            (fun x ->
+                                            (fun _ ->
                                                 Users.GuildData.Init
-                                                    (Some gameState)
+                                                    (Some engine.GameState)
                                             )
                                 }
 
@@ -183,7 +191,6 @@ let create db =
     let m =
         let init: State = {
             Users = Users.Guilds.init "cyoa" db
-            MoraiGame = MoraiGame.game
         }
 
         MailboxProcessor.Start (fun mail ->

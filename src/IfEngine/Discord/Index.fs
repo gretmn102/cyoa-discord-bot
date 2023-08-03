@@ -1,6 +1,5 @@
 module IfEngine.Discord.Index
-open IfEngine.Interpreter
-open IfEngine.Game
+open IfEngine.Engine
 open DSharpPlus
 open DSharpPlus.Entities
 open DiscordBotExtensions
@@ -8,7 +7,6 @@ open DiscordBotExtensions.Extensions
 open DiscordBotExtensions.Types
 
 open IfEngine.Discord.Utils
-
 
 type ComponentId =
     | NextButtonId = 0
@@ -51,9 +49,9 @@ module ComponentState =
     let inline tryDeserialize str: Result<ComponentState, _> option =
         Interaction.ComponentState.tryDeserialize Data.Parser.parse str
 
-let view messageCyoaId ownerId handleCustomStatement (currentCommand: Command<Text,'LabelName,'Addon,'Arg>) =
+let view messageCyoaId ownerId handleCustomStatement (currentCommand: OutputMsg<Text,'CustomStatement>) =
     match currentCommand with
-    | Print(embed, _) ->
+    | OutputMsg.Print(embed) ->
         let b = DiscordMessageBuilder()
 
         let componentState: ComponentState =
@@ -71,14 +69,14 @@ let view messageCyoaId ownerId handleCustomStatement (currentCommand: Command<Te
 
         b.AddComponents nextButton |> ignore
         b
-    | End ->
+    | OutputMsg.End ->
         let b = DiscordMessageBuilder()
         let embed = DiscordEmbedBuilder()
         embed.Description <- "Конец"
         b.Embed <- embed.Build()
 
         b
-    | Choices(caption, choices, _) ->
+    | OutputMsg.Choices(caption, choices) ->
         let b = DiscordMessageBuilder()
         b.Embed <- caption
 
@@ -101,10 +99,8 @@ let view messageCyoaId ownerId handleCustomStatement (currentCommand: Command<Te
         b.AddComponents c |> ignore
 
         b
-    | AddonAct(arg, _) ->
+    | OutputMsg.CustomStatement(arg) ->
         handleCustomStatement arg currentCommand
-    | NextState x ->
-        failwithf "NextState %A" x
 
 type ModalReturn<'GameState> =
     {
@@ -149,12 +145,12 @@ let modalHandle messageTypeId commandName updateGame (client: DiscordClient) (e:
                     if componentState.Data.OwnerId = userId then
                         match componentState.ComponentId with
                         | ComponentId.NextButtonId ->
-                            updateGame userId Next
+                            updateGame userId InputMsg.Next
                             |> Some
                             |> createReturn
                         | ComponentId.SelectMenuId ->
                             let selected = int e.Values.[0]
-                            updateGame userId (Choice selected)
+                            updateGame userId (InputMsg.Choice selected)
                             |> Some
                             |> createReturn
                         | x ->
