@@ -122,6 +122,12 @@ let main argv =
 
         awaiti <| client.ConnectAsync()
 
-        startServer ()
+        match argv with
+        | [||] ->
+            awaiti <| Task.Delay(-1)
+        | [|"--server"|] ->
+            startServer ()
+        | xs ->
+            printfn "unexpected args %A" xs
 
         0
