@@ -1,6 +1,6 @@
 module IfEngine.Discord.Utils
-open IfEngine.Types
-open IfEngine.Utils
+open IfEngine.SyntaxTree
+open IfEngine.SyntaxTree.Helpers
 open DSharpPlus.Entities
 open DiscordBotExtensions.Extensions
 

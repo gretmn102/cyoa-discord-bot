@@ -1,7 +1,7 @@
 module Cyoa.MoraiGame
 open IfEngine
-open IfEngine.Utils
-open IfEngine.Types
+open IfEngine.SyntaxTree
+open IfEngine.SyntaxTree.Helpers
 open IfEngine.Discord.Utils
 open FsharpMyExtension.ResultExt
 
@@ -13,10 +13,7 @@ type Label = string
 let mainMenuLoc = "MainMenu"
 let beginLoc: Label = mainMenuLoc
 
-let (scenario: NamedBlock<Text, Label, CustomStatement> list), vars =
-    let vars = Map.empty
-    let getLoseCounter, updateLoseCounter, vars = createNumVar "losesCount" 0 vars
-
+let (scenario: NamedBlock<Text, Label, CustomStatement> list) =
     [
         let rec preludeLoc = nameof preludeLoc
         label mainMenuLoc [
@@ -627,8 +624,6 @@ let (scenario: NamedBlock<Text, Label, CustomStatement> list), vars =
             say "todo"
         ]
     ]
-    |> fun scenario ->
-        scenario, vars
 
 open IfEngine.Engine
 type State = State<Text, Label, CustomStatement>
@@ -638,7 +633,7 @@ type Engine = Engine<Text, Label, CustomStatement, CustomStatementArg, CustomSta
 let initGameState: State =
     State.init
         beginLoc
-        vars
+        Map.empty
 
 let create (state: State) : Result<Engine, string> =
     let scenario =
