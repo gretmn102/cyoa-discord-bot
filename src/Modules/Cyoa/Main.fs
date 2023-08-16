@@ -61,6 +61,8 @@ type Msg =
 
 let messageCyoaId = "moraiGameId"
 
+let spacesIndentSize = 2
+
 let reduce (msg: Msg) (state: State): State =
     match msg with
     | Request(e, action) ->
@@ -75,6 +77,7 @@ let reduce (msg: Msg) (state: State): State =
 
                 let msg =
                     IfEngine.Discord.Index.view
+                        spacesIndentSize
                         messageCyoaId
                         e.Author.Id
                         (fun _ ->
@@ -128,6 +131,7 @@ let reduce (msg: Msg) (state: State): State =
                             let msg =
                                 Engine.getCurrentOutputMsg engine
                                 |> IfEngine.Discord.Index.view
+                                    spacesIndentSize
                                     messageCyoaId
                                     e.User.Id
                                     (fun _ ->
