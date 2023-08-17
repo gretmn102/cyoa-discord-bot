@@ -1,13 +1,10 @@
 module IfEngine.Discord.Index
 open IfEngine.Engine
-open IfEngine.SyntaxTree
 open DSharpPlus
 open DSharpPlus.Entities
 open DiscordBotExtensions
 open DiscordBotExtensions.Extensions
 open DiscordBotExtensions.Types
-
-open IfEngine.Discord.Utils
 
 type ComponentId =
     | NextButtonId = 0
@@ -50,7 +47,7 @@ module ComponentState =
     let inline tryDeserialize str: Result<ComponentState, _> option =
         Interaction.ComponentState.tryDeserialize Data.Parser.parse str
 
-let view spacesIndentSize messageCyoaId ownerId handleCustomStatement (currentCommand: OutputMsg<CommonContent.Content,'CustomStatement>) =
+let view contentToEmbed messageCyoaId ownerId handleCustomStatement (currentCommand: OutputMsg<'Content,'CustomStatement>) =
     match currentCommand with
     | OutputMsg.Print(content) ->
         let b = DiscordMessageBuilder()
@@ -66,7 +63,7 @@ let view spacesIndentSize messageCyoaId ownerId handleCustomStatement (currentCo
         let nextButton =
             DiscordButtonComponent(ButtonStyle.Primary, ComponentState.serialize componentState, "...")
 
-        b.Embed <- Content.ofCommon spacesIndentSize content
+        b.Embed <- contentToEmbed content
 
         b.AddComponents nextButton |> ignore
         b
@@ -79,7 +76,7 @@ let view spacesIndentSize messageCyoaId ownerId handleCustomStatement (currentCo
         b
     | OutputMsg.Choices(caption, choices) ->
         let b = DiscordMessageBuilder()
-        b.Embed <- Content.ofCommon spacesIndentSize caption
+        b.Embed <- contentToEmbed caption
 
         let options =
             choices

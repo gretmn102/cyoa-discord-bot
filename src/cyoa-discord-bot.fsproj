@@ -13,6 +13,7 @@
     <Compile Include="Modules\Cyoa\MoraiGame.fs" />
     <Compile Include="Modules\Cyoa\Model.fs" />
     <Compile Include="Modules\Cyoa\Main.fs" />
+    <Compile Include="SomeGame.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />

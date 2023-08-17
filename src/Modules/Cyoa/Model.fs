@@ -5,24 +5,28 @@ open MongoDB.Bson
 open DiscordBotExtensions.Types
 open DiscordBotExtensions.Db
 
+module Emptyable =
+    let inline empty<'T when 'T : (static member Empty: 'T)> =
+        (^T : (static member Empty: 'T) ())
+
 module Users =
-    type GuildData =
+    type GuildData<'Content,'Label,'CustomStatement> =
         {
-            GameState: MoraiGame.State option
+            GameState: IfEngine.State<'Content,'Label,'CustomStatement> option
         }
-        static member Init gameState : GuildData =
+        static member Init gameState : GuildData<'Content,'Label,'CustomStatement> =
             {
                 GameState = gameState
             }
-        static member Empty =
+        static member Empty : GuildData<'Content,'Label,'CustomStatement> =
             {
                 GameState = None
             }
-        static member Serialize (data: GuildData) =
+        static member Serialize (data: GuildData<'Content,'Label,'CustomStatement>) =
             data |> Json.ser
         static member Deserialize json =
             try
-                let x: GuildData = Json.des json
+                let x: GuildData<'Content,'Label,'CustomStatement> = Json.des json
                 Ok x
             with e ->
                 Error e.Message
@@ -32,24 +36,24 @@ module Users =
 
     type Id = UserId
 
-    type Guild = CommonDb.Data<Id, Version, GuildData>
+    type Guild<'Content,'Label,'CustomStatement> = CommonDb.Data<Id, Version, GuildData<'Content,'Label,'CustomStatement>>
     [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
     [<RequireQualifiedAccess>]
     module Guild =
-        let create id data: Guild =
+        let create id data: Guild<'Content,'Label,'CustomStatement> =
             CommonDb.Data.create id Version.V0 data
 
-    type Guilds = CommonDb.GuildData<Id, Version, GuildData>
+    type Guilds<'Content,'Label,'CustomStatement> = CommonDb.GuildData<Id, Version, GuildData<'Content,'Label,'CustomStatement>>
     [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
     [<RequireQualifiedAccess>]
     module Guilds =
-        let createData id =
-            Guild.create id GuildData.Empty
+        let createData id : Guild<'Content,'Label,'CustomStatement> =
+            Guild.create id Emptyable.empty
 
-        let init collectionName (db: IMongoDatabase): Guilds =
+        let init collectionName (db: IMongoDatabase): Guilds<'Content,'Label,'CustomStatement> =
             MongoDB.Bson.Serialization.BsonSerializer.RegisterSerializer(
-                typeof<MoraiGame.State>,
-                new NewtonsoftSerializer<MoraiGame.State>()
+                typeof<IfEngine.State<'Content,'Label,'CustomStatement>>,
+                new NewtonsoftSerializer<IfEngine.State<'Content,'Label,'CustomStatement>>()
             )
 
             CommonDb.GuildData.init
@@ -59,7 +63,7 @@ module Users =
                     | Some ver ->
                         match ver with
                         | Version.V0 ->
-                            None, Serialization.BsonSerializer.Deserialize<Guild>(doc)
+                            None, Serialization.BsonSerializer.Deserialize<Guild<'Content,'Label,'CustomStatement>>(doc)
                         | x ->
                             failwithf "Version = %A not implemented\n%A" x doc
                     | None ->
@@ -68,15 +72,15 @@ module Users =
                 collectionName
                 db
 
-        let set userId setAdditionParams (guildData: Guilds) : Guilds =
+        let set userId setAdditionParams (guildData: Guilds<'Content,'Label,'CustomStatement>) : Guilds<'Content,'Label,'CustomStatement> =
             CommonDb.GuildData.set
                 createData
                 userId
                 setAdditionParams
                 guildData
 
-        let drop (db: IMongoDatabase) (items: Guilds) =
+        let drop (db: IMongoDatabase) (items: Guilds<'Content,'Label,'CustomStatement>) =
             CommonDb.GuildData.drop db items
 
-        let tryFindById id (items: Guilds): Guild option =
+        let tryFindById id (items: Guilds<'Content,'Label,'CustomStatement>): Guild<'Content,'Label,'CustomStatement> option =
             CommonDb.GuildData.tryFind id items

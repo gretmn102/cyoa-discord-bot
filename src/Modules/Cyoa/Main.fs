@@ -10,9 +10,9 @@ open IfEngine.Engine
 
 open Model
 
-type State =
+type State<'Content,'Label,'CustomStatement> =
     {
-        Users: Users.Guilds
+        Users: Users.Guilds<'Content,'Label,'CustomStatement>
     }
 
 type MainAction =
@@ -27,15 +27,12 @@ module MainAction =
 
         type 'Result Parser = Primitives.Parser<'Result, unit>
 
-        module CommandNames =
-            let startCyoa = "startCyoa"
+        let startCyoa startCyoaCommand: _ Parser =
+            skipStringCI startCyoaCommand .>> spaces
 
-        let startCyoa: _ Parser =
-            skipStringCI CommandNames.startCyoa .>> spaces
-
-        let start: _ Parser =
+        let start startCyoaCommand: _ Parser =
             choice [
-                startCyoa >>% StartCyoa
+                startCyoa startCyoaCommand >>% StartCyoa
             ]
 
 type Action =
@@ -48,9 +45,9 @@ module Action =
         open FParsec
         type 'Result Parser = Primitives.Parser<'Result, unit>
 
-        let start f: _ Parser =
+        let start startCyoaCommand f: _ Parser =
             choice [
-                MainAction.Parser.start |>> MainActionCmd
+                MainAction.Parser.start startCyoaCommand |>> MainActionCmd
             ]
             >>= fun msg ->
                 preturn (fun x -> f x msg)
@@ -59,11 +56,22 @@ type Msg =
     | Request of EventArgs.MessageCreateEventArgs * Action
     | ComponentInteractionCreateEventHandler of DiscordClient * EventArgs.ComponentInteractionCreateEventArgs * r: AsyncReplyChannel<bool>
 
-let messageCyoaId = "moraiGameId"
+type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> =
+    {
+        MessageCyoaId: string
+        CreateGame: IfEngine.State<'Content,'Label,'CustomStatement> -> Result<Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>, string>
+        ContentToEmbed: 'Content -> Entities.DiscordEmbed
+        InitGameState: IfEngine.State<'Content,'Label,'CustomStatement>
+        DbCollectionName: string
+        StartCyoaCommand: string
+    }
 
-let spacesIndentSize = 2
+let reduce
+    (game: Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>)
+    (msg: Msg)
+    (state: State<'Content,'Label,'CustomStatement>)
+    : State<'Content,'Label,'CustomStatement> =
 
-let reduce (msg: Msg) (state: State): State =
     match msg with
     | Request(e, action) ->
         match action with
@@ -71,14 +79,14 @@ let reduce (msg: Msg) (state: State): State =
             match x with
             | StartCyoa ->
                 let engine =
-                    MoraiGame.create MoraiGame.initGameState |> Result.get
+                    game.CreateGame game.InitGameState |> Result.get
 
                 let initOutputMsg = Engine.getCurrentOutputMsg engine
 
                 let msg =
                     IfEngine.Discord.Index.view
-                        spacesIndentSize
-                        messageCyoaId
+                        game.ContentToEmbed
+                        game.MessageCyoaId
                         e.Author.Id
                         (fun _ ->
                             failwithf "handle custom statement not implemented"
@@ -105,8 +113,8 @@ let reduce (msg: Msg) (state: State): State =
         let commandPrefix = "."
         let result =
             IfEngine.Discord.Index.modalHandle
-                messageCyoaId
-                (sprintf "%s%s" commandPrefix MainAction.Parser.CommandNames.startCyoa)
+                game.MessageCyoaId
+                (sprintf "%s%s" commandPrefix game.StartCyoaCommand)
                 (fun userId gameCommand ->
                     let send msg =
                         let embed = Entities.DiscordEmbedBuilder()
@@ -123,7 +131,7 @@ let reduce (msg: Msg) (state: State): State =
                         match user.Data.GameState with
                         | Some gameState ->
                             let engine =
-                                MoraiGame.create gameState |> Result.get // TODO
+                                game.CreateGame gameState |> Result.get // TODO
                                 |> Engine.update gameCommand |> Result.get
 
                             let userId = e.User.Id
@@ -131,8 +139,8 @@ let reduce (msg: Msg) (state: State): State =
                             let msg =
                                 Engine.getCurrentOutputMsg engine
                                 |> IfEngine.Discord.Index.view
-                                    spacesIndentSize
-                                    messageCyoaId
+                                    game.ContentToEmbed
+                                    game.MessageCyoaId
                                     e.User.Id
                                     (fun _ ->
                                         failwithf "handle custom statement not implemented"
@@ -191,19 +199,19 @@ let reduceError msg =
     | ComponentInteractionCreateEventHandler(_, _, r) ->
         r.Reply true
 
-let create db =
+let create (game: Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>) db =
     let m =
-        let init: State = {
-            Users = Users.Guilds.init "cyoa" db
+        let init: State<'Content,'Label,'CustomStatement> = {
+            Users = Users.Guilds.init game.DbCollectionName db
         }
 
         MailboxProcessor.Start (fun mail ->
-            let rec loop (state: State) =
+            let rec loop (state: State<'Content,'Label,'CustomStatement>) =
                 async {
                     let! msg = mail.Receive()
                     let state =
                         try
-                            reduce msg state
+                            reduce game msg state
                         with e ->
                             reduceError msg
                             printfn "%A" e
@@ -217,7 +225,7 @@ let create db =
     { BotModule.empty with
         MessageCreateEventHandleExclude =
             let exec: _ Action.Parser.Parser =
-                Action.Parser.start (fun (client: DiscordClient, e: EventArgs.MessageCreateEventArgs) msg ->
+                Action.Parser.start game.StartCyoaCommand (fun (client: DiscordClient, e: EventArgs.MessageCreateEventArgs) msg ->
                     m.Post (Request (e, msg))
                 )
 

@@ -1,6 +1,5 @@
 module App
 open FsharpMyExtension
-open FsharpMyExtension.Either
 open Microsoft.Extensions.Logging
 open System.Threading.Tasks
 open DiscordBotExtensions
@@ -9,9 +8,45 @@ open DSharpPlus
 
 let botEventId = new EventId(42, "Bot-Event")
 
+let startMorai =
+    "startMorai"
+let startSome =
+    "startSome"
+
+let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
+    {
+        MessageCyoaId = "moraiGameId"
+        CreateGame =
+            Cyoa.MoraiGame.create
+        ContentToEmbed =
+            IfEngine.Discord.Utils.Content.ofCommon 2
+        InitGameState =
+            Cyoa.MoraiGame.initGameState
+        DbCollectionName =
+            "morai-game"
+        StartCyoaCommand =
+            startMorai
+    }
+
+let someGame: Cyoa.Main.Game<_,_,_,_,_> =
+    {
+        MessageCyoaId = "someGameId"
+        CreateGame =
+            SomeGame.create
+        ContentToEmbed =
+            IfEngine.Discord.Utils.Content.ofCommon 2
+        InitGameState =
+            SomeGame.initGameState
+        DbCollectionName =
+            "some-game"
+        StartCyoaCommand =
+            startSome
+    }
+
 let initBotModules (db: MongoDB.Driver.IMongoDatabase) =
     [|
-        Cyoa.Main.create db
+        Cyoa.Main.create moraiGame db
+        Cyoa.Main.create someGame db
     |]
 
 open MongoDB.Driver
@@ -89,7 +124,8 @@ let main argv =
                 embed.Description <-
                     [
                         "Доступны следующие команды:"
-                        Cyoa.Main.MainAction.Parser.CommandNames.startCyoa
+                        startMorai
+                        startSome
                     ]
                     |> String.concat "\n"
                 b.Embed <- embed
