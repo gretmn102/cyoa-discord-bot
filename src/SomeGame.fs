@@ -2,10 +2,9 @@ module SomeGame
 open IfEngine
 open IfEngine.SyntaxTree
 open IfEngine.SyntaxTree.Helpers
-open IfEngine.SyntaxTree.CommonContent
-open IfEngine.SyntaxTree.CommonContent.Helpers
 open Farkdown.Experimental.Helpers
 open FsharpMyExtension.ResultExt
+open IfEngine.Discord.Utils
 
 type CustomStatement = unit
 type CustomStatementArg = unit
@@ -15,9 +14,15 @@ type Label =
     | Label2
     | Label3
 
+let menu caption choices =
+    CommonContentWithNarrator.createMenu caption choices
+
+let say content =
+    CommonContentWithNarrator.createSay content
+
 let beginLoc: Label = Label1
 
-let (scenario: Scenario<Content, Label, CustomStatement>) =
+let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
     // https://imgur.com/a/FXkyeUC
     let images =
         [|
@@ -82,9 +87,9 @@ let (scenario: Scenario<Content, Label, CustomStatement>) =
     : Scenario<_, _, _>
 
 open IfEngine.Engine
-type State = State<Content, Label, CustomStatement>
+type State = State<CommonContentWithNarrator, Label, CustomStatement>
 type CustomStatementOutput = unit
-type Engine = Engine<Content, Label, CustomStatement, CustomStatementArg, CustomStatementOutput>
+type Engine = Engine<CommonContentWithNarrator, Label, CustomStatement, CustomStatementArg, CustomStatementOutput>
 
 let initGameState: State =
     State.init

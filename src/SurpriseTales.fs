@@ -2,10 +2,9 @@ module SurpriseTales
 open IfEngine
 open IfEngine.SyntaxTree
 open IfEngine.SyntaxTree.Helpers
-open IfEngine.SyntaxTree.CommonContent
-open IfEngine.SyntaxTree.CommonContent.Helpers
 open Farkdown.Experimental.Helpers
 open FsharpMyExtension.ResultExt
+open IfEngine.Discord.Utils
 
 type CustomStatement = unit
 type CustomStatementArg = unit
@@ -16,55 +15,41 @@ type Label =
 
 let beginLoc: Label = Menu
 
-let bluetoothSay content =
-    say [
-        h1 [ text "Максишебник" ] [
-            yield! content
-            yield p [[ img "https://cdn.discordapp.com/avatars/884492693475053639/d6a06abf4c3458f29ff32bde06dec390.webp?size=48" "" "" ]]
-        ]
-    ]
+let menu caption choices =
+    CommonContentWithNarrator.createMenu caption choices
 
-let surpriseContent content =
-    [
-        h1 [ text "Сказочница" ] [
-            yield! content
-            yield p [[ img "https://cdn.discordapp.com/avatars/807631911131807765/716cf4e01b5450e4e39de93bb9aaa3e7.webp?size=48" "Surprise" "Surprise" ]]
-        ]
-    ]
+let say content =
+    CommonContentWithNarrator.createSay content
 
-let surpriseMenu content choices =
-    menu
-        (surpriseContent content)
-        choices
+let bluetoothSay =
+    CommonContentWithNarrator.createNarratorSay' "Максишебник" "https://cdn.discordapp.com/avatars/884492693475053639/d6a06abf4c3458f29ff32bde06dec390.webp?size=48"
 
-let surpriseSay content =
-    say (surpriseContent content)
+let surpriseNarrator =
+    Narrator.create "Сказочница" "https://cdn.discordapp.com/avatars/807631911131807765/716cf4e01b5450e4e39de93bb9aaa3e7.webp?size=48"
 
-let agentSay content =
-    say [
-        h1 [ text "Агентарито" ] [
-            yield! content
-            yield p [[ img "https://cdn.discordapp.com/avatars/796931597898088448/e9c47d2b4a6e14797d1d348e69a33836.webp?size=48" "" "" ]]
-        ]
-    ]
+let surpriseMenu =
+    CommonContentWithNarrator.createNarratorMenu
+        surpriseNarrator
 
-let adalindaSay content =
-    say [
-        h1 [ text "Адасиринити" ] [
-            yield! content
-            yield p [[ img "https://cdn.discordapp.com/avatars/572010412157960192/407a80311750dc55d6d4abe188c545b4.webp?size=48" "" "" ]]
-        ]
-    ]
+let surpriseSay =
+    CommonContentWithNarrator.createNarratorSay surpriseNarrator
 
-let sobenokSay content =
-    say [
-        h1 [ text "СОВЕНОК" ] [
-            yield! content
-            yield p [[ img "https://cdn.discordapp.com/guilds/927554008263032832/users/516737047147446272/avatars/a25b7a033b212f52ff822da145c47201.webp?size=48" "" "" ]]
-        ]
-    ]
+let agentSay =
+    CommonContentWithNarrator.createNarratorSay'
+        "Агентарито"
+        "https://cdn.discordapp.com/avatars/796931597898088448/e9c47d2b4a6e14797d1d348e69a33836.webp?size=48"
 
-let (scenario: Scenario<Content, Label, CustomStatement>) =
+let adalindaSay =
+    CommonContentWithNarrator.createNarratorSay'
+        "Адасиринити"
+        "https://cdn.discordapp.com/avatars/572010412157960192/407a80311750dc55d6d4abe188c545b4.webp?size=48"
+
+let sobenokSay =
+    CommonContentWithNarrator.createNarratorSay'
+        "СОВЕНОК"
+        "https://cdn.discordapp.com/guilds/927554008263032832/users/516737047147446272/avatars/a25b7a033b212f52ff822da145c47201.webp?size=48"
+
+let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
     [
         let rec preludeLoc = nameof preludeLoc
         label Menu [
@@ -444,9 +429,9 @@ let (scenario: Scenario<Content, Label, CustomStatement>) =
     : Scenario<_, _, _>
 
 open IfEngine.Engine
-type State = State<Content, Label, CustomStatement>
+type State = State<CommonContentWithNarrator, Label, CustomStatement>
 type CustomStatementOutput = unit
-type Engine = Engine<Content, Label, CustomStatement, CustomStatementArg, CustomStatementOutput>
+type Engine = Engine<CommonContentWithNarrator, Label, CustomStatement, CustomStatementArg, CustomStatementOutput>
 
 let initGameState: State =
     State.init

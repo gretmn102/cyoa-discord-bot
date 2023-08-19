@@ -2,10 +2,9 @@ module Cyoa.MoraiGame
 open IfEngine
 open IfEngine.SyntaxTree
 open IfEngine.SyntaxTree.Helpers
-open IfEngine.SyntaxTree.CommonContent
-open IfEngine.SyntaxTree.CommonContent.Helpers
 open Farkdown.Experimental.Helpers
 open FsharpMyExtension.ResultExt
+open IfEngine.Discord.Utils
 
 type CustomStatement = unit
 type CustomStatementArg = unit
@@ -15,7 +14,13 @@ type Label = string
 let mainMenuLoc = "MainMenu"
 let beginLoc: Label = mainMenuLoc
 
-let (scenario: Scenario<Content, Label, CustomStatement>) =
+let menu caption choices =
+    CommonContentWithNarrator.createMenu caption choices
+
+let say content =
+    CommonContentWithNarrator.createSay content
+
+let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
     [
         let rec preludeLoc = nameof preludeLoc
         label mainMenuLoc [
@@ -398,6 +403,7 @@ let (scenario: Scenario<Content, Label, CustomStatement>) =
                     [ text "- Ага <:catPleased:1041855910626213949>. Я знала, что тебе будет интересно! Вот смотри..." ]
                 ]
             ] [
+                // TODO: fix: Discord API returns a 400 error, because the text of the choice option is too long
                 choice "(todo)...мы берём 100 удочек, одеваем на крючок разные штуки и на одну золотое кольцо. А потом закидываем все за борт и играем в лотерею!" [
                     jump pressMoraiForContinue
                 ]
@@ -701,9 +707,9 @@ let (scenario: Scenario<Content, Label, CustomStatement>) =
     : Scenario<_, _, _>
 
 open IfEngine.Engine
-type State = State<Content, Label, CustomStatement>
+type State = State<CommonContentWithNarrator, Label, CustomStatement>
 type CustomStatementOutput = unit
-type Engine = Engine<Content, Label, CustomStatement, CustomStatementArg, CustomStatementOutput>
+type Engine = Engine<CommonContentWithNarrator, Label, CustomStatement, CustomStatementArg, CustomStatementOutput>
 
 let initGameState: State =
     State.init
