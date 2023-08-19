@@ -87,7 +87,7 @@ let reduce
                     IfEngine.Discord.Index.view
                         game.ContentToEmbed
                         game.MessageCyoaId
-                        e.Author.Id
+                        e.Author
                         (fun _ ->
                             failwithf "handle custom statement not implemented"
                         )
@@ -141,7 +141,7 @@ let reduce
                                 |> IfEngine.Discord.Index.view
                                     game.ContentToEmbed
                                     game.MessageCyoaId
-                                    e.User.Id
+                                    e.User
                                     (fun _ ->
                                         failwithf "handle custom statement not implemented"
                                     )

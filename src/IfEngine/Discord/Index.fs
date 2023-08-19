@@ -47,7 +47,12 @@ module ComponentState =
     let inline tryDeserialize str: Result<ComponentState, _> option =
         Interaction.ComponentState.tryDeserialize Data.Parser.parse str
 
-let view contentToEmbed messageCyoaId ownerId handleCustomStatement (currentCommand: OutputMsg<'Content,'CustomStatement>) =
+let view (contentToEmbed: _ -> DiscordEmbed) messageCyoaId (user: DiscordUser) handleCustomStatement (currentCommand: OutputMsg<'Content,'CustomStatement>) =
+    let addGameOwner (srcEmbed: DiscordEmbed) =
+        let embed = DiscordEmbedBuilder(srcEmbed)
+        embed.WithFooter(sprintf "Игра %s" user.Username) |> ignore
+        embed.Build()
+
     match currentCommand with
     | OutputMsg.Print(content) ->
         let b = DiscordMessageBuilder()
@@ -57,13 +62,13 @@ let view contentToEmbed messageCyoaId ownerId handleCustomStatement (currentComm
                 messageCyoaId
                 ComponentId.NextButtonId
                 {
-                    OwnerId = ownerId
+                    OwnerId = user.Id
                 }
 
         let nextButton =
             DiscordButtonComponent(ButtonStyle.Primary, ComponentState.serialize componentState, "...")
 
-        b.Embed <- contentToEmbed content
+        b.Embed <- contentToEmbed content |> addGameOwner
 
         b.AddComponents nextButton |> ignore
         b
@@ -76,7 +81,7 @@ let view contentToEmbed messageCyoaId ownerId handleCustomStatement (currentComm
         b
     | OutputMsg.Choices(caption, choices) ->
         let b = DiscordMessageBuilder()
-        b.Embed <- contentToEmbed caption
+        b.Embed <- contentToEmbed caption |> addGameOwner
 
         let options =
             choices
@@ -89,7 +94,7 @@ let view contentToEmbed messageCyoaId ownerId handleCustomStatement (currentComm
                 messageCyoaId
                 ComponentId.SelectMenuId
                 {
-                    OwnerId = ownerId
+                    OwnerId = user.Id
                 }
 
         let c =
