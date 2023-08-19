@@ -49,33 +49,8 @@ let sobenokSay =
         "СОВЕНОК"
         "https://cdn.discordapp.com/guilds/927554008263032832/users/516737047147446272/avatars/a25b7a033b212f52ff822da145c47201.webp?size=48"
 
-let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
+let taleAboutWizard =
     [
-        let rec preludeLoc = nameof preludeLoc
-        label Menu [
-            surpriseMenu [
-                p [[ text "Привет, путник! Какую сказку хочешь послушать? "]]
-            ] [
-                choice "Про короля" [
-                    say [
-                        p [[ text "здесь должна быть сказка про кузнеца, но Агент ее еще не сделал." ]]
-                    ]
-                    jump Menu
-                ]
-
-                choice "Про кузнеца" [
-                    say [
-                        p [[ text "здесь должна быть сказка про кузнеца, но Агент ее еще не сделал." ]]
-                    ]
-                    jump Menu
-                ]
-
-                choice "Про волшебника" [
-                    jump StartTaleAboutWizard
-                ]
-            ]
-        ]
-
         label StartTaleAboutWizard [
             say [
                 p [[ text "В таинственном лесу, на высокой-высокой горе стоял маленький домик из старого деревца, а в домике этом жил одинокий, злой волшебник Максишебник — тот еще ненавистник женского пола." ]]
@@ -423,6 +398,36 @@ let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
                 p [[ text "Наш волшебник тугенький, и мысли приходят не с первого раза, но мы верим в нашего волшебника, верим, что у него всё сложится. Пусть с 250-го раза, но всё сложится! Конец!" ]]
             ]
         ]
+    ]
+
+let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
+    [
+        let rec preludeLoc = nameof preludeLoc
+        label Menu [
+            surpriseMenu [
+                p [[ text "Привет, путник! Какую сказку хочешь послушать? "]]
+            ] [
+                choice "Про короля" [
+                    say [
+                        p [[ text "здесь должна быть сказка про кузнеца, но Агент ее еще не сделал." ]]
+                    ]
+                    jump Menu
+                ]
+
+                choice "Про кузнеца" [
+                    say [
+                        p [[ text "здесь должна быть сказка про кузнеца, но Агент ее еще не сделал." ]]
+                    ]
+                    jump Menu
+                ]
+
+                choice "Про волшебника" [
+                    jump StartTaleAboutWizard
+                ]
+            ]
+        ]
+
+        yield! taleAboutWizard
     ]
     |> List.map (fun (labelName, body) -> labelName, (labelName, body))
     |> Map.ofList
