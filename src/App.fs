@@ -12,6 +12,8 @@ let startMorai =
     "startMorai"
 let startSome =
     "startSome"
+let startSurpriseTales =
+    "сказочки"
 
 let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
     {
@@ -43,10 +45,26 @@ let someGame: Cyoa.Main.Game<_,_,_,_,_> =
             startSome
     }
 
+let surpriseTales: Cyoa.Main.Game<_,_,_,_,_> =
+    {
+        MessageCyoaId = "surpriseTalesId"
+        CreateGame =
+            SurpriseTales.create
+        ContentToEmbed =
+            IfEngine.Discord.Utils.Content.ofCommon 2
+        InitGameState =
+            SurpriseTales.initGameState
+        DbCollectionName =
+            "surprise_tales"
+        StartCyoaCommand =
+            startSurpriseTales
+    }
+
 let initBotModules (db: MongoDB.Driver.IMongoDatabase) =
     [|
         Cyoa.Main.create moraiGame db
         Cyoa.Main.create someGame db
+        Cyoa.Main.create surpriseTales db
     |]
 
 open MongoDB.Driver
@@ -126,6 +144,7 @@ let main argv =
                         "Доступны следующие команды:"
                         startMorai
                         startSome
+                        startSurpriseTales
                     ]
                     |> String.concat "\n"
                 b.Embed <- embed
