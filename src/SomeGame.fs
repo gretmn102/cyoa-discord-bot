@@ -101,3 +101,6 @@ let create (state: State) : Result<Engine, string> =
         CustomStatementHandler.empty
         scenario
         state
+
+let customOutputView (customOutput: CustomStatementOutput) =
+    failwithf "has not implemented"

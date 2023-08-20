@@ -47,7 +47,7 @@ module ComponentState =
     let inline tryDeserialize str: Result<ComponentState, _> option =
         Interaction.ComponentState.tryDeserialize Data.Parser.parse str
 
-let view (contentToEmbed: _ -> DiscordEmbed) messageCyoaId (user: DiscordUser) handleCustomStatement (currentCommand: OutputMsg<'Content,'CustomStatement>) =
+let view (contentToEmbed: _ -> DiscordEmbed) messageCyoaId (user: DiscordUser) customOutputView (currentCommand: OutputMsg<'Content,'CustomStatement>) =
     let addGameOwner (srcEmbed: DiscordEmbed) =
         let embed = DiscordEmbedBuilder(srcEmbed)
         embed.WithFooter(sprintf "Игра %s" user.Username) |> ignore
@@ -103,7 +103,7 @@ let view (contentToEmbed: _ -> DiscordEmbed) messageCyoaId (user: DiscordUser) h
 
         b
     | OutputMsg.CustomStatement(arg) ->
-        handleCustomStatement arg currentCommand
+        customOutputView arg
 
 type ModalReturn<'GameState> =
     {

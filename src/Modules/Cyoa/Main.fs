@@ -60,6 +60,7 @@ type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementO
     {
         MessageCyoaId: string
         CreateGame: IfEngine.State<'Content,'Label> -> Result<Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>, string>
+        CustomOutputView: 'CustomStatementOutput -> Entities.DiscordMessageBuilder
         ContentToEmbed: 'Content -> Entities.DiscordEmbed
         InitGameState: IfEngine.State<'Content,'Label>
         DbCollectionName: string
@@ -88,9 +89,7 @@ let reduce
                         game.ContentToEmbed
                         game.MessageCyoaId
                         e.Author
-                        (fun _ ->
-                            failwithf "handle custom statement not implemented"
-                        )
+                        game.CustomOutputView
                         initOutputMsg
 
                 let state =
@@ -142,9 +141,7 @@ let reduce
                                     game.ContentToEmbed
                                     game.MessageCyoaId
                                     e.User
-                                    (fun _ ->
-                                        failwithf "handle custom statement not implemented"
-                                    )
+                                    game.CustomOutputView
 
                             let state =
                                 { state with

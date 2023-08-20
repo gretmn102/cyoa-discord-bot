@@ -28,6 +28,8 @@ let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
             "morai-game"
         StartCyoaCommand =
             startMorai
+        CustomOutputView =
+            Cyoa.MoraiGame.customOutputView
     }
 
 let someGame: Cyoa.Main.Game<_,_,_,_,_> =
@@ -43,6 +45,8 @@ let someGame: Cyoa.Main.Game<_,_,_,_,_> =
             "some-game"
         StartCyoaCommand =
             startSome
+        CustomOutputView =
+            SomeGame.customOutputView
     }
 
 let surpriseTales: Cyoa.Main.Game<_,_,_,_,_> =
@@ -58,6 +62,8 @@ let surpriseTales: Cyoa.Main.Game<_,_,_,_,_> =
             "surprise_tales"
         StartCyoaCommand =
             startSurpriseTales
+        CustomOutputView =
+            SurpriseTales.customOutputView
     }
 
 let initBotModules (db: MongoDB.Driver.IMongoDatabase) =
