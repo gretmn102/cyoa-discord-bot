@@ -704,7 +704,7 @@ let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
     : Scenario<_, _, _>
 
 open IfEngine.Engine
-type State = State<CommonContentWithNarrator, Label, CustomStatement>
+type State = State<CommonContentWithNarrator, Label>
 type CustomStatementOutput = unit
 type Engine = Engine<CommonContentWithNarrator, Label, CustomStatement, CustomStatementArg, CustomStatementOutput>
 

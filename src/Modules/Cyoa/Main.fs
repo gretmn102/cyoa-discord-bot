@@ -10,9 +10,9 @@ open IfEngine.Engine
 
 open Model
 
-type State<'Content,'Label,'CustomStatement> =
+type State<'Content,'Label> =
     {
-        Users: Users.Guilds<'Content,'Label,'CustomStatement>
+        Users: Users.Guilds<'Content,'Label>
     }
 
 type MainAction =
@@ -59,9 +59,9 @@ type Msg =
 type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> =
     {
         MessageCyoaId: string
-        CreateGame: IfEngine.State<'Content,'Label,'CustomStatement> -> Result<Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>, string>
+        CreateGame: IfEngine.State<'Content,'Label> -> Result<Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>, string>
         ContentToEmbed: 'Content -> Entities.DiscordEmbed
-        InitGameState: IfEngine.State<'Content,'Label,'CustomStatement>
+        InitGameState: IfEngine.State<'Content,'Label>
         DbCollectionName: string
         StartCyoaCommand: string
     }
@@ -69,8 +69,8 @@ type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementO
 let reduce
     (game: Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>)
     (msg: Msg)
-    (state: State<'Content,'Label,'CustomStatement>)
-    : State<'Content,'Label,'CustomStatement> =
+    (state: State<'Content,'Label>)
+    : State<'Content,'Label> =
 
     match msg with
     | Request(e, action) ->
@@ -201,12 +201,12 @@ let reduceError msg =
 
 let create (game: Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>) db =
     let m =
-        let init: State<'Content,'Label,'CustomStatement> = {
+        let init: State<'Content,'Label> = {
             Users = Users.Guilds.init game.DbCollectionName db
         }
 
         MailboxProcessor.Start (fun mail ->
-            let rec loop (state: State<'Content,'Label,'CustomStatement>) =
+            let rec loop (state: State<'Content,'Label>) =
                 async {
                     let! msg = mail.Receive()
                     let state =
