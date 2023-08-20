@@ -66,11 +66,13 @@ let surpriseTales: Cyoa.Main.Game<_,_,_,_,_> =
             SurpriseTales.customOutputView
     }
 
-let initBotModules (db: MongoDB.Driver.IMongoDatabase) =
+let initBotModules restClient client (db: MongoDB.Driver.IMongoDatabase) =
+    let create game =
+        Cyoa.Main.create restClient client db game
     [|
-        Cyoa.Main.create moraiGame db
-        Cyoa.Main.create someGame db
-        Cyoa.Main.create surpriseTales db
+        create moraiGame
+        create someGame
+        create surpriseTales
     |]
 
 open MongoDB.Driver
@@ -135,9 +137,13 @@ let main argv =
         let client = new DSharpPlus.DiscordClient(config)
 
         let database = initDb ()
-        let botModules = initBotModules database
 
         let prefix = "."
+
+        let client = new DiscordClient(config)
+        let restClient = new DiscordRestClient(config)
+
+        let botModules = initBotModules client restClient database
 
         botModules
         |> BotModule.bindToClientsEvents

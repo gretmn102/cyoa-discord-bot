@@ -47,7 +47,17 @@ module ComponentState =
     let inline tryDeserialize str: Result<ComponentState, _> option =
         Interaction.ComponentState.tryDeserialize Data.Parser.parse str
 
-let view (contentToEmbed: _ -> DiscordEmbed) messageCyoaId (user: DiscordUser) customOutputView (currentCommand: OutputMsg<'Content,'CustomStatement>) =
+type CreateViewArgs<'Content, 'CustomStatementOutput> =
+    {
+        MessageCyoaId: Interaction.FormId
+        ContentToEmbed: 'Content -> DiscordEmbed
+        CustomOutputView: 'CustomStatementOutput -> DiscordMessageBuilder
+    }
+
+let view
+    (user: DiscordUser)
+    (currentCommand: OutputMsg<'Content,'CustomStatementOutput>)
+    (args: CreateViewArgs<'Content,'CustomStatementOutput>) =
     let addGameOwner (srcEmbed: DiscordEmbed) =
         let embed = DiscordEmbedBuilder(srcEmbed)
         embed.WithFooter(sprintf "Игра %s" user.Username) |> ignore
@@ -59,7 +69,7 @@ let view (contentToEmbed: _ -> DiscordEmbed) messageCyoaId (user: DiscordUser) c
 
         let componentState: ComponentState =
             Interaction.ComponentState.create
-                messageCyoaId
+                args.MessageCyoaId
                 ComponentId.NextButtonId
                 {
                     OwnerId = user.Id
@@ -68,7 +78,7 @@ let view (contentToEmbed: _ -> DiscordEmbed) messageCyoaId (user: DiscordUser) c
         let nextButton =
             DiscordButtonComponent(ButtonStyle.Primary, ComponentState.serialize componentState, "...")
 
-        b.Embed <- contentToEmbed content |> addGameOwner
+        b.Embed <- args.ContentToEmbed content |> addGameOwner
 
         b.AddComponents nextButton |> ignore
         b
@@ -81,7 +91,7 @@ let view (contentToEmbed: _ -> DiscordEmbed) messageCyoaId (user: DiscordUser) c
         b
     | OutputMsg.Choices(caption, choices) ->
         let b = DiscordMessageBuilder()
-        b.Embed <- contentToEmbed caption |> addGameOwner
+        b.Embed <- args.ContentToEmbed caption |> addGameOwner
 
         let options =
             choices
@@ -91,7 +101,7 @@ let view (contentToEmbed: _ -> DiscordEmbed) messageCyoaId (user: DiscordUser) c
 
         let componentState: ComponentState =
             Interaction.ComponentState.create
-                messageCyoaId
+                args.MessageCyoaId
                 ComponentId.SelectMenuId
                 {
                     OwnerId = user.Id
@@ -103,7 +113,7 @@ let view (contentToEmbed: _ -> DiscordEmbed) messageCyoaId (user: DiscordUser) c
 
         b
     | OutputMsg.CustomStatement(arg) ->
-        customOutputView arg
+        args.CustomOutputView arg
 
 type ModalReturn<'GameState> =
     {
