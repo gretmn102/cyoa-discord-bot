@@ -26,10 +26,15 @@ let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
             Cyoa.MoraiGame.initGameState
         DbCollectionName =
             "morai-game"
-        StartCyoaCommand =
+        RawCommandStart =
             startMorai
         CustomOutputView =
             Cyoa.MoraiGame.customOutputView
+        SlashCommandStart =
+            {|
+                Name = "start-morai-tales"
+                Description = "запустить морайские сказки"
+            |}
     }
 
 let someGame: Cyoa.Main.Game<_,_,_,_,_> =
@@ -43,10 +48,15 @@ let someGame: Cyoa.Main.Game<_,_,_,_,_> =
             SomeGame.initGameState
         DbCollectionName =
             "some-game"
-        StartCyoaCommand =
+        RawCommandStart =
             startSome
         CustomOutputView =
             SomeGame.customOutputView
+        SlashCommandStart =
+            {|
+                Name = "start-some-cyoa"
+                Description = "Запустить какое-то CYOA с картинками"
+            |}
     }
 
 let surpriseTales: Cyoa.Main.Game<_,_,_,_,_> =
@@ -60,10 +70,15 @@ let surpriseTales: Cyoa.Main.Game<_,_,_,_,_> =
             SurpriseTales.initGameState
         DbCollectionName =
             "surprise_tales"
-        StartCyoaCommand =
+        RawCommandStart =
             startSurpriseTales
         CustomOutputView =
             SurpriseTales.customOutputView
+        SlashCommandStart =
+            {|
+                Name = "start-surprise-tales"
+                Description = "Запустить сказочки Ее Носочества"
+            |}
     }
 
 let initBotModules restClient client (db: MongoDB.Driver.IMongoDatabase) =

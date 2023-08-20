@@ -18,7 +18,8 @@ type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementO
         CreateGame: IfEngine.State<'Content,'Label> -> Result<Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>, string>
         InitGameState: IfEngine.State<'Content,'Label>
         DbCollectionName: string
-        StartCyoaCommand: string
+        RawCommandStart: string
+        SlashCommandStart: {| Name: string; Description: string |}
     }
 
 type State<'Content,'Label> =
@@ -210,7 +211,7 @@ let reduce
         let result =
             IfEngine.Discord.Index.modalHandle
                 game.MessageCyoaId
-                (sprintf "%s%s" commandPrefix game.StartCyoaCommand)
+                (sprintf "%s%s" commandPrefix game.RawCommandStart)
                 (fun userId gameCommand ->
                     let user = e.Interaction.User
                     let interp =
@@ -276,10 +277,29 @@ let create
             loop init
         )
 
+    let commands =
+        let startGame =
+            let slashCommandName = game.SlashCommandStart.Name
+            InteractionCommand.SlashCommand {|
+                CommandName = slashCommandName
+                Command =
+                    new Entities.DiscordApplicationCommand(
+                        slashCommandName,
+                        game.SlashCommandStart.Description,
+                        ``type`` = ApplicationCommandType.SlashCommand
+                    )
+                Handler = fun e ->
+                    m.Post(RequestSlashCommand(e, MainActionCmd StartCyoa))
+            |}
+
+        [|
+            startGame
+        |]
+
     { BotModule.empty with
         MessageCreateEventHandleExclude =
             let exec: _ Action.Parser.Parser =
-                Action.Parser.start game.StartCyoaCommand (fun (client: DiscordClient, e: EventArgs.MessageCreateEventArgs) msg ->
+                Action.Parser.start game.RawCommandStart (fun (client: DiscordClient, e: EventArgs.MessageCreateEventArgs) msg ->
                     m.Post (Request (e, msg))
                 )
 
@@ -290,4 +310,7 @@ let create
                 m.PostAndReply(fun r -> ComponentInteractionCreateEventHandler(client, e, r))
 
             Some exec
+
+        InteractionCommands =
+            Some commands
     }
