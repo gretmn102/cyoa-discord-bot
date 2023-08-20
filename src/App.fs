@@ -3,6 +3,7 @@ open FsharpMyExtension
 open Microsoft.Extensions.Logging
 open System.Threading.Tasks
 open DiscordBotExtensions
+open DiscordBotExtensions.Extensions
 open DiscordBotExtensions.Types
 open DSharpPlus
 
@@ -160,22 +161,74 @@ let main argv =
 
         let botModules = initBotModules client restClient database
 
+        let modulesSlashCommandDescriptions =
+            botModules
+            |> Array.choose (fun botModule ->
+                botModule.InteractionCommands
+                |> Option.map (fun xs ->
+                    xs
+                    |> Array.choose (fun x ->
+                        match x with
+                        | InteractionCommand.SlashCommand x ->
+                            let command = x.Command
+                            let commandName = x.CommandName
+                            let description =
+                                try
+                                    command.DescriptionLocalizations.["ru"]
+                                with e ->
+                                    command.Description
+                            Some(commandName, description)
+                        | _ ->
+                            None
+                    )
+                    |> Map.ofArray
+                )
+                |> Option.map (fun xs ->
+                    {|
+                        Name = "Доступные команды" // todo: add bot module name
+                        DescriptionByName = xs
+                    |}
+                )
+            )
+
         botModules
         |> BotModule.bindToClientsEvents
             prefix
             (fun client e ->
-                let b = Entities.DiscordMessageBuilder()
-                let embed = Entities.DiscordEmbedBuilder()
+                let commands =
+                    await <| client.GetGlobalApplicationCommandsAsync()
+
+                let commands =
+                    modulesSlashCommandDescriptions
+                    |> Array.map (fun commandDescriptions ->
+                        commands
+                        |> Seq.choose (fun discordApplicationCommand ->
+                            if discordApplicationCommand.Type = ApplicationCommandType.SlashCommand then
+                                let commandName = discordApplicationCommand.Name
+                                Map.tryFind commandName commandDescriptions.DescriptionByName
+                                |> Option.map(fun description ->
+                                    {|
+                                        Id = discordApplicationCommand.Id
+                                        Name = commandName
+                                        Description = description
+                                    |}
+                                )
+                            else
+                                None
+                        )
+                        |> Seq.map (fun x ->
+                            sprintf "• </%s:%d> — %s" x.Name x.Id x.Description
+                        )
+                        |> String.concat "\n"
+                        // |> sprintf "%s:\n%s" commandDescriptions.Name // todo: module name
+                    )
+
+                let embed = DSharpPlus.Entities.DiscordEmbedBuilder()
+                embed.Color <- DiscordEmbed.backgroundColorDarkTheme
                 embed.Description <-
-                    [
-                        "Доступны следующие команды:"
-                        startMorai
-                        startSome
-                        startSurpriseTales
-                    ]
-                    |> String.concat "\n"
-                b.Embed <- embed
-                awaiti <| e.Channel.SendMessageAsync(b)
+                    sprintf  "Доступные команды:\n%s"
+                        (commands |> String.concat "\n")
+                awaiti <| e.Channel.SendMessageAsync embed
             )
             (fun client e ->
                 ()
