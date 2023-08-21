@@ -17,14 +17,22 @@ let startSurpriseTales =
     "сказочки"
 
 let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
+    let args: IfEngine.Discord.Index.CreateViewArgs<_, _> =
+        {
+            MessageCyoaId =
+                "moraiGameId"
+            ContentToEmbed =
+                IfEngine.Discord.Utils.Content.ofCommon 2
+            CustomOutputView =
+                Cyoa.MoraiGame.customOutputView
+        }
+
     {
-        MessageCyoaId = "moraiGameId"
+        ViewArgs = args
         CreateGame =
             IfEngine.Engine.Engine.create
                 Cyoa.MoraiGame.customStatementHandler
                 Cyoa.MoraiGame.scenario
-        ContentToEmbed =
-            IfEngine.Discord.Utils.Content.ofCommon 2
         InitGameState =
             IfEngine.State.init
                 Cyoa.MoraiGame.beginLoc
@@ -33,8 +41,6 @@ let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
             "morai-game"
         RawCommandStart =
             startMorai
-        CustomOutputView =
-            Cyoa.MoraiGame.customOutputView
         SlashCommandStart =
             {|
                 Name = "start-morai-tales"
@@ -43,14 +49,22 @@ let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
     }
 
 let someGame: Cyoa.Main.Game<_,_,_,_,_> =
+    let args: IfEngine.Discord.Index.CreateViewArgs<_, _> =
+        {
+            MessageCyoaId =
+                "someGameId"
+            ContentToEmbed =
+                IfEngine.Discord.Utils.Content.ofCommon 2
+            CustomOutputView =
+                SomeGame.customOutputView
+        }
+
     {
-        MessageCyoaId = "someGameId"
+        ViewArgs = args
         CreateGame =
             IfEngine.Engine.Engine.create
                 SomeGame.customStatementHandler
                 SomeGame.scenario
-        ContentToEmbed =
-            IfEngine.Discord.Utils.Content.ofCommon 2
         InitGameState =
             IfEngine.State.init
                 SomeGame.beginLoc
@@ -59,8 +73,6 @@ let someGame: Cyoa.Main.Game<_,_,_,_,_> =
             "some-game"
         RawCommandStart =
             startSome
-        CustomOutputView =
-            SomeGame.customOutputView
         SlashCommandStart =
             {|
                 Name = "start-some-cyoa"
@@ -69,14 +81,22 @@ let someGame: Cyoa.Main.Game<_,_,_,_,_> =
     }
 
 let surpriseTales: Cyoa.Main.Game<_,_,_,_,_> =
+    let args: IfEngine.Discord.Index.CreateViewArgs<_, _> =
+        {
+            MessageCyoaId =
+                "surpriseTalesId"
+            ContentToEmbed =
+                IfEngine.Discord.Utils.Content.ofCommon 2
+            CustomOutputView =
+                SurpriseTales.customOutputView
+        }
+
     {
-        MessageCyoaId = "surpriseTalesId"
+        ViewArgs = args
         CreateGame =
             IfEngine.Engine.Engine.create
                 SurpriseTales.customStatementHandler
                 SurpriseTales.scenario
-        ContentToEmbed =
-            IfEngine.Discord.Utils.Content.ofCommon 2
         InitGameState =
             IfEngine.State.init
                 SurpriseTales.beginLoc
@@ -85,8 +105,6 @@ let surpriseTales: Cyoa.Main.Game<_,_,_,_,_> =
             "surprise_tales"
         RawCommandStart =
             startSurpriseTales
-        CustomOutputView =
-            SurpriseTales.customOutputView
         SlashCommandStart =
             {|
                 Name = "start-surprise-tales"

@@ -6,15 +6,13 @@ open FsharpMyExtension.ResultExt
 open DiscordBotExtensions
 open DiscordBotExtensions.Extensions
 open IfEngine.Engine
+open IfEngine.Discord.Index
 
 open Model
 
 type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> =
     {
-        MessageCyoaId: Interaction.FormId
-        ContentToEmbed: 'Content -> Entities.DiscordEmbed
-        CustomOutputView: 'CustomStatementOutput -> Entities.DiscordMessageBuilder
-
+        ViewArgs: CreateViewArgs<'Content, 'CustomStatementOutput>
         CreateGame: IfEngine.State<'Content,'Label> -> Result<Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>, string>
         InitGameState: IfEngine.State<'Content,'Label>
         DbCollectionName: string
@@ -155,13 +153,6 @@ let reduce
     (state: State<'Content,'Label>)
     : State<'Content,'Label> =
 
-    let args: IfEngine.Discord.Index.CreateViewArgs<'Content, 'CustomStatementOutput> =
-        {
-            MessageCyoaId = game.MessageCyoaId
-            ContentToEmbed = game.ContentToEmbed
-            CustomOutputView = game.CustomOutputView
-        }
-
     match msg with
     | Request(e, action) ->
         match action with
@@ -170,7 +161,7 @@ let reduce
             let interp =
                 let api =
                     Mvc.Controller.createMessageApi
-                        (interpView args user)
+                        (interpView game.ViewArgs user)
                         (fun state ->
                             let req = Model.MyCmd.End
                             req, state
@@ -192,7 +183,7 @@ let reduce
             let interp =
                 let api =
                     Mvc.Controller.createSlashCommandApi
-                        (interpView args user)
+                        (interpView game.ViewArgs user)
                         (fun state ->
                             let req = Model.MyCmd.End
                             req, state
@@ -210,14 +201,14 @@ let reduce
         let commandPrefix = "."
         let result =
             IfEngine.Discord.Index.modalHandle
-                game.MessageCyoaId
+                game.ViewArgs.MessageCyoaId
                 (sprintf "%s%s" commandPrefix game.RawCommandStart)
                 (fun userId gameCommand ->
                     let user = e.Interaction.User
                     let interp =
                         let api =
                             Mvc.Controller.createComponentInteractionApi
-                                (interpView args user)
+                                (interpView game.ViewArgs user)
                                 (fun state ->
                                     let req = Model.MyCmd.End
                                     req, state
