@@ -5,6 +5,7 @@ open IfEngine.SyntaxTree.Helpers
 open Farkdown.Experimental.Helpers
 open FsharpMyExtension.ResultExt
 open IfEngine.Discord.Utils
+open IfEngine.Engine
 
 type CustomStatement = unit
 type CustomStatementArg = unit
@@ -703,21 +704,10 @@ let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
     |> Map.ofList
     : Scenario<_, _, _>
 
-open IfEngine.Engine
-type State = State<CommonContentWithNarrator, Label>
 type CustomStatementOutput = unit
-type Engine = Engine<CommonContentWithNarrator, Label, CustomStatement, CustomStatementArg, CustomStatementOutput>
 
-let initGameState: State =
-    State.init
-        beginLoc
-        Map.empty
-
-let create (state: State) : Result<Engine, string> =
-    Engine.create
-        CustomStatementHandler.empty
-        scenario
-        state
+let customStatementHandler : CustomStatementHandler<CommonContentWithNarrator,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
+    CustomStatementHandler.empty
 
 let customOutputView (customOutput: CustomStatementOutput) =
     failwithf "has not implemented"

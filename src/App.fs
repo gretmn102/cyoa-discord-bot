@@ -20,11 +20,15 @@ let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
     {
         MessageCyoaId = "moraiGameId"
         CreateGame =
-            Cyoa.MoraiGame.create
+            IfEngine.Engine.Engine.create
+                Cyoa.MoraiGame.customStatementHandler
+                Cyoa.MoraiGame.scenario
         ContentToEmbed =
             IfEngine.Discord.Utils.Content.ofCommon 2
         InitGameState =
-            Cyoa.MoraiGame.initGameState
+            IfEngine.State.init
+                Cyoa.MoraiGame.beginLoc
+                Map.empty
         DbCollectionName =
             "morai-game"
         RawCommandStart =
@@ -42,11 +46,15 @@ let someGame: Cyoa.Main.Game<_,_,_,_,_> =
     {
         MessageCyoaId = "someGameId"
         CreateGame =
-            SomeGame.create
+            IfEngine.Engine.Engine.create
+                SomeGame.customStatementHandler
+                SomeGame.scenario
         ContentToEmbed =
             IfEngine.Discord.Utils.Content.ofCommon 2
         InitGameState =
-            SomeGame.initGameState
+            IfEngine.State.init
+                SomeGame.beginLoc
+                Map.empty
         DbCollectionName =
             "some-game"
         RawCommandStart =
@@ -64,11 +72,15 @@ let surpriseTales: Cyoa.Main.Game<_,_,_,_,_> =
     {
         MessageCyoaId = "surpriseTalesId"
         CreateGame =
-            SurpriseTales.create
+            IfEngine.Engine.Engine.create
+                SurpriseTales.customStatementHandler
+                SurpriseTales.scenario
         ContentToEmbed =
             IfEngine.Discord.Utils.Content.ofCommon 2
         InitGameState =
-            SurpriseTales.initGameState
+            IfEngine.State.init
+                SurpriseTales.beginLoc
+                Map.empty
         DbCollectionName =
             "surprise_tales"
         RawCommandStart =
