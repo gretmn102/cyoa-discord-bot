@@ -6,6 +6,7 @@ open FsharpMyExtension.ResultExt
 open DiscordBotExtensions
 open DiscordBotExtensions.Extensions
 open IfEngine.Engine
+open IfEngine.Discord
 open IfEngine.Discord.Index
 
 open Model
@@ -22,7 +23,7 @@ type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementO
 
 type State<'Content,'Label> =
     {
-        Users: Users.Guilds<'Content,'Label>
+        Users: UserGamesStorage.Guilds<'Content,'Label>
         MvcState: Mvc.Controller.State
     }
 
@@ -69,14 +70,14 @@ type Msg =
     | ComponentInteractionCreateEventHandler of DiscordClient * EventArgs.ComponentInteractionCreateEventArgs * r: AsyncReplyChannel<bool>
 
 let interpView
-    (args: IfEngine.Discord.Index.CreateViewArgs<'Content, 'CustomStatementOutput>)
+    (args: Index.CreateViewArgs<'Content, 'CustomStatementOutput>)
     user
     (view: Model.ViewCmd<'Content, 'CustomStatementOutput>)
     : Entities.DiscordMessageBuilder =
 
     match view with
     | ViewCmd.StartNewGame gameMsg ->
-        IfEngine.Discord.Index.view user gameMsg args
+        Index.view user gameMsg args
 
 let interp
     api
@@ -103,10 +104,10 @@ let interp
                 { state with
                     Users =
                         state.Users
-                        |> Users.Guilds.set
+                        |> UserGamesStorage.Guilds.set
                             userId
                             (fun x ->
-                                Users.GuildData.Init
+                                UserGamesStorage.GuildData.Init
                                     (Some gameState)
                             )
                 }
@@ -116,7 +117,7 @@ let interp
         | Model.MyCmd.LoadGameStateFromDb(userId, next) ->
             let gameState =
                 state.Users
-                |> Users.Guilds.tryFindById userId
+                |> UserGamesStorage.Guilds.tryFindById userId
                 |> Option.bind (fun x -> x.Data.GameState)
 
             interp (next gameState) state
@@ -247,7 +248,7 @@ let create
 
     let m =
         let init: State<'Content,'Label> = {
-            Users = Users.Guilds.init game.DbCollectionName db
+            Users = UserGamesStorage.Guilds.init game.DbCollectionName db
             MvcState = Mvc.Controller.State.empty
         }
 
