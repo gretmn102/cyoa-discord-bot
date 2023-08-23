@@ -122,25 +122,23 @@ let interp
 
             interp (next gameState) state
 
-        | Model.MyCmd.GameReq msg ->
-            match msg with
-            | GameReq.StartNewGame((), next) ->
-                let engine =
-                    game.CreateGame game.InitGameState |> Result.get // TODO
+        | Model.MyCmd.StartNewGame((), next) ->
+            let engine =
+                game.CreateGame game.InitGameState |> Result.get // TODO
 
-                let gameState = engine.GameState
-                let gameOutputMsg = Engine.getCurrentOutputMsg engine
-                let cmd = next (gameState, gameOutputMsg)
-                interp cmd state
+            let gameState = engine.GameState
+            let gameOutputMsg = Engine.getCurrentOutputMsg engine
+            let cmd = next (gameState, gameOutputMsg)
+            interp cmd state
 
-            | GameReq.UpdateGame((currentGameState, gameInpugMsg), next) ->
-                let engine =
-                    game.CreateGame currentGameState |> Result.get // TODO
-                    |> Engine.update gameInpugMsg |> Result.get
-                let gameState = engine.GameState
-                let gameOutputMsg = Engine.getCurrentOutputMsg engine
-                let cmd = next (gameState, gameOutputMsg)
-                interp cmd state
+        | Model.MyCmd.UpdateGame((currentGameState, gameInpugMsg), next) ->
+            let engine =
+                game.CreateGame currentGameState |> Result.get // TODO
+                |> Engine.update gameInpugMsg |> Result.get
+            let gameState = engine.GameState
+            let gameOutputMsg = Engine.getCurrentOutputMsg engine
+            let cmd = next (gameState, gameOutputMsg)
+            interp cmd state
 
         | Model.MyCmd.End -> state
 
