@@ -133,7 +133,7 @@ let interp
                 let cmd = next (gameState, gameOutputMsg)
                 interp cmd state
 
-            | GameReq.Update((currentGameState, gameInpugMsg), next) ->
+            | GameReq.UpdateGame((currentGameState, gameInpugMsg), next) ->
                 let engine =
                     game.CreateGame currentGameState |> Result.get // TODO
                     |> Engine.update gameInpugMsg |> Result.get

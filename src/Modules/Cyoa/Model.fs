@@ -11,7 +11,7 @@ type ViewCmd<'Content, 'CustomStatementOutput> =
 [<RequireQualifiedAccess>]
 type GameReq<'Content,'Label, 'CustomStatementArg,'CustomStatementOutput,'Next> =
     | StartNewGame of Req<unit, IfEngine.State<'Content,'Label> * OutputMsg<'Content,'CustomStatementOutput>, 'Next>
-    | Update of Req<IfEngine.State<'Content,'Label> * InputMsg<'CustomStatementArg>, IfEngine.State<'Content,'Label> * OutputMsg<'Content,'CustomStatementOutput>, 'Next>
+    | UpdateGame of Req<IfEngine.State<'Content,'Label> * InputMsg<'CustomStatementArg>, IfEngine.State<'Content,'Label> * OutputMsg<'Content,'CustomStatementOutput>, 'Next>
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
@@ -20,7 +20,7 @@ module GameReq =
         GameReq.StartNewGame(arg, next)
 
     let update gameState inputMsg next =
-        GameReq.Update((gameState, inputMsg), next)
+        GameReq.UpdateGame((gameState, inputMsg), next)
 
 [<RequireQualifiedAccess>]
 type MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
