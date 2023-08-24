@@ -10,6 +10,7 @@ open IfEngine.Discord
 open IfEngine.Discord.Index
 
 open Model
+open DiscordBotExtensions.Types
 
 type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> =
     {
@@ -64,10 +65,22 @@ module Action =
             >>= fun msg ->
                 preturn (fun x -> f x msg)
 
+[<RequireQualifiedAccess>]
+type ViewComponentState =
+    | GameView of ComponentReturn
+
+module ViewComponentStatesManager =
+    let create gameViewId =
+        [
+            Interaction.Form.map ViewComponentState.GameView (gameViewId, ComponentReturn.handler gameViewId)
+        ]
+        |> Map.ofList
+
 type Msg =
     | Request of EventArgs.MessageCreateEventArgs * Action
     | RequestSlashCommand of EventArgs.InteractionCreateEventArgs * Action
-    | ComponentInteractionCreateEventHandler of DiscordClient * EventArgs.ComponentInteractionCreateEventArgs * r: AsyncReplyChannel<bool>
+    // todo: refact: rename to `RequestInteraction`
+    | ComponentInteractionCreateEventHandler of DiscordClient * EventArgs.ComponentInteractionCreateEventArgs * ViewComponentState
 
 let interpView
     (args: Index.CreateViewArgs<'Content, 'CustomStatementOutput>)
@@ -197,35 +210,51 @@ let reduce
                 interp (Model.startNewGame user.Id) state
 
     | ComponentInteractionCreateEventHandler(client, e, replyChannel) ->
-        let commandPrefix = "."
-        let result =
-            IfEngine.Discord.Index.modalHandle
-                game.ViewArgs.MessageCyoaId
-                (sprintf "%s%s" commandPrefix game.RawCommandStart)
-                (fun userId gameCommand ->
-                    let user = e.Interaction.User
-                    let interp =
-                        let api =
-                            Mvc.Controller.createComponentInteractionApi
-                                (interpView game.ViewArgs user)
-                                (fun state ->
-                                    let req = Model.MyCmd.End
-                                    req, state
-                                )
-                                restClient
-                                e
+        match replyChannel with
+        | ViewComponentState.GameView viewState ->
+            let formState = ComponentReturn.getFormState viewState
 
-                        interp api client game
+            let commandPrefix = "." // todo
 
-                    interp (Model.updateGame user.Id gameCommand) state
-                )
-                client
-                e
+            if formState.OwnerId <> e.User.Id then
+                let b = Entities.DiscordInteractionResponseBuilder()
+                b.Content <-
+                    sprintf "Здесь играет <@%d>, чтобы самому поиграть, введите `%s%s`"
+                        formState.OwnerId
+                        commandPrefix
+                        game.RawCommandStart
+                b.IsEphemeral <- true
+                awaiti <| e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, b)
 
-        replyChannel.Reply result.IsHandled
+                state
+            else
+                let componentId = ComponentReturn.toComponentId viewState
 
-        result.UpdatedGameState
-        |> Option.defaultValue state
+                let gameCommand =
+                    match componentId with
+                    | ComponentId.NextButtonId ->
+                        InputMsg.Next
+                    | ComponentId.SelectMenuId ->
+                        let selected = int e.Values.[0]
+                        InputMsg.Choice selected
+                    | x ->
+                        failwithf "%A componentId not implemented yet!" x
+
+                let user = e.Interaction.User
+                let interp =
+                    let api =
+                        Mvc.Controller.createComponentInteractionApi
+                            (interpView game.ViewArgs user)
+                            (fun state ->
+                                let req = Model.MyCmd.End
+                                req, state
+                            )
+                            restClient
+                            e
+
+                    interp api client game
+
+                interp (Model.updateGame user.Id gameCommand) state
 
 let reduceError msg =
     match msg with
@@ -235,8 +264,8 @@ let reduceError msg =
         | MainActionCmd x ->
             match x with
             | StartCyoa -> ()
-    | ComponentInteractionCreateEventHandler(_, _, r) ->
-        r.Reply true
+    | ComponentInteractionCreateEventHandler(_, _, _) ->
+        ()
 
 let create
     (client: DiscordClient)
@@ -286,6 +315,45 @@ let create
             startGame
         |]
 
+    let componentInteractionCreateHandler (client: DiscordClient, e: EventArgs.ComponentInteractionCreateEventArgs) =
+        let testIsMessageBelongToBot () next =
+            if e.Message.Author.Id = client.CurrentUser.Id then
+                next ()
+            else
+                false
+
+        let restartComponent errMsg =
+            try
+                DiscordMessage.Ext.clearComponents e.Message
+            with e ->
+                printfn "%A" e.Message
+
+            let b = Entities.DiscordInteractionResponseBuilder()
+            b.Content <-
+                [
+                    sprintf "Вызовите эту комманду еще раз, потому что-то пошло не так:"
+                    "```"
+                    sprintf "%s" errMsg
+                    "```"
+                ] |> String.concat "\n"
+            b.IsEphemeral <- true
+            awaiti <| e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, b)
+
+        pipeBackwardBuilder {
+            do! testIsMessageBelongToBot ()
+
+            let input = e.Id
+
+            let isHandled =
+                Interaction.handleForms
+                    (ViewComponentStatesManager.create game.ViewArgs.MessageCyoaId)
+                    restartComponent
+                    (fun viewAction -> ComponentInteractionCreateEventHandler(client, e, viewAction) |> m.Post)
+                    input
+
+            return isHandled
+        }
+
     { BotModule.empty with
         MessageCreateEventHandleExclude =
             let exec: _ Action.Parser.Parser =
@@ -297,7 +365,7 @@ let create
 
         ComponentInteractionCreateHandle =
             let exec (client, e) =
-                m.PostAndReply(fun r -> ComponentInteractionCreateEventHandler(client, e, r))
+                componentInteractionCreateHandler (client, e)
 
             Some exec
 
