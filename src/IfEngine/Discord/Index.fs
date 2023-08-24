@@ -85,36 +85,6 @@ type Data with
     static member Deserialize str =
         Data.deserialize str
 
-[<RequireQualifiedAccess>]
-type ComponentReturn =
-    | NextButton of Data
-    | SelectMenu of Data
-
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-[<RequireQualifiedAccess>]
-module ComponentReturn =
-    let getFormState = function
-        | ComponentReturn.SelectMenu state
-        | ComponentReturn.NextButton state ->
-            state
-
-    let toComponentId = function
-        | ComponentReturn.SelectMenu _ -> ComponentId.SelectMenuId
-        | ComponentReturn.NextButton _ -> ComponentId.NextButtonId
-
-    let handler (viewId: FormId) : ComponentStateParsers<ComponentReturn> =
-        let parse deserialize map =
-            let parse (pos, str: string) =
-                deserialize str.[pos..]
-
-            ComponentStateParser.parseMap viewId parse map
-
-        [
-            int ComponentId.NextButtonId, parse Deserialization.deserialize ComponentReturn.NextButton
-            int ComponentId.SelectMenuId, parse Deserialization.deserialize ComponentReturn.SelectMenu
-        ]
-        |> Map.ofList
-
 type ComponentState = Interaction.ComponentState<ComponentId, Data>
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
@@ -122,8 +92,21 @@ module ComponentState =
     let inline serialize (x: ComponentState) =
         ComponentState.serialize Data.Show.shows x
 
-    let inline tryDeserialize str: Result<ComponentState, _> option =
-        ComponentState.tryDeserialize Data.Parser.parser str
+    let handler (viewId: FormId) : ComponentStateParsers<ComponentState> =
+        let parse deserialize map =
+            let parse (pos, str: string) =
+                deserialize str.[pos..]
+
+            ComponentStateParser.parseMap viewId parse map
+
+        let create componentId =
+            int componentId, parse Deserialization.deserialize (ComponentState.create viewId componentId)
+
+        [
+            create ComponentId.NextButtonId
+            create ComponentId.SelectMenuId
+        ]
+        |> Map.ofList
 
 type CreateViewArgs<'Content, 'CustomStatementOutput> =
     {

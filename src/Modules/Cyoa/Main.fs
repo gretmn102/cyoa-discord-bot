@@ -67,12 +67,12 @@ module Action =
 
 [<RequireQualifiedAccess>]
 type ViewComponentState =
-    | GameView of ComponentReturn
+    | GameView of ComponentState
 
 module ViewComponentStatesManager =
     let create gameViewId =
         [
-            Interaction.Form.map ViewComponentState.GameView (gameViewId, ComponentReturn.handler gameViewId)
+            Interaction.Form.map ViewComponentState.GameView (gameViewId, ComponentState.handler gameViewId)
         ]
         |> Map.ofList
 
@@ -211,16 +211,14 @@ let reduce
 
     | ComponentInteractionCreateEventHandler(client, e, replyChannel) ->
         match replyChannel with
-        | ViewComponentState.GameView viewState ->
-            let formState = ComponentReturn.getFormState viewState
-
+        | ViewComponentState.GameView componentState ->
             let commandPrefix = "." // todo
 
-            if formState.OwnerId <> e.User.Id then
+            if componentState.Data.OwnerId <> e.User.Id then
                 let b = Entities.DiscordInteractionResponseBuilder()
                 b.Content <-
                     sprintf "Здесь играет <@%d>, чтобы самому поиграть, введите `%s%s`"
-                        formState.OwnerId
+                        componentState.Data.OwnerId
                         commandPrefix
                         game.RawCommandStart
                 b.IsEphemeral <- true
@@ -228,7 +226,7 @@ let reduce
 
                 state
             else
-                let componentId = ComponentReturn.toComponentId viewState
+                let componentId = componentState.ComponentId
 
                 let gameCommand =
                     match componentId with
