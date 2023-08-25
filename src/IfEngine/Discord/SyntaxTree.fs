@@ -55,14 +55,6 @@ module CommonContentWithNarrator =
             )
             choices
 
-    let createNarratorMenu' name avatarUrl caption choices : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
-        menu
-            (create
-                (Narrator.create name avatarUrl |> Some)
-                caption
-            )
-            choices
-
 type Content = DiscordEmbed
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
