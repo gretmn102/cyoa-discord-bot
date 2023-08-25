@@ -5,12 +5,12 @@ open DiscordBotExtensions.Mvc.Model
 open IfEngine.Engine
 
 [<RequireQualifiedAccess;Struct>]
-type ViewCmd<'Content, 'CustomStatementOutput> =
+type AbstractView<'Content, 'CustomStatementOutput> =
     | StartNewGame of OutputMsg<'Content,'CustomStatementOutput>
 
 [<RequireQualifiedAccess>]
 type MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
-    | MvcCmd of Cmd<ViewCmd<'Content, 'CustomStatementOutput>, MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
+    | MvcCmd of Cmd<AbstractView<'Content, 'CustomStatementOutput>, MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
     | StartNewGame of Req<unit, IfEngine.State<'Content,'Label> * OutputMsg<'Content,'CustomStatementOutput>, MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
     | UpdateGame of Req<IfEngine.State<'Content,'Label> * InputMsg<'CustomStatementArg>, IfEngine.State<'Content,'Label> * OutputMsg<'Content,'CustomStatementOutput>, MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
     | SaveGameStateToDb of Req<UserId * IfEngine.State<'Content,'Label>, unit, MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
@@ -44,7 +44,7 @@ module MyCmd =
     let startNewGame (userId: UserId) : MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
         pipeBackwardBuilder {
             let! gameState, gameOutputMsg = Helpers.startNewGame ()
-            let! _ = Helpers.mvcCmd (Cmd.responseCreateView false (ViewCmd.StartNewGame gameOutputMsg))
+            let! _ = Helpers.mvcCmd (Cmd.responseCreateView false (AbstractView.StartNewGame gameOutputMsg))
             let! _ = Helpers.saveGameStateToDb userId gameState
             return Helpers.end'
         }
@@ -55,7 +55,7 @@ module MyCmd =
             match gameState with
             | Some gameState ->
                 let! gameState, gameOutputMsg = Helpers.update gameState gameInputMsg
-                let! _ = Helpers.mvcCmd (Cmd.responseUpdateCurrentView (ViewCmd.StartNewGame gameOutputMsg))
+                let! _ = Helpers.mvcCmd (Cmd.responseUpdateCurrentView (AbstractView.StartNewGame gameOutputMsg))
                 let! _ = Helpers.saveGameStateToDb userId gameState
                 return Helpers.end'
             | None ->

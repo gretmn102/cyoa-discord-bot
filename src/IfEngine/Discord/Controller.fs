@@ -85,11 +85,11 @@ type Msg =
 let interpView
     (args: View.CreateViewArgs<'Content, 'CustomStatementOutput>)
     user
-    (view: Model.ViewCmd<'Content, 'CustomStatementOutput>)
+    (view: Model.AbstractView<'Content, 'CustomStatementOutput>)
     : Entities.DiscordMessageBuilder =
 
     match view with
-    | ViewCmd.StartNewGame gameMsg ->
+    | AbstractView.StartNewGame gameMsg ->
         View.view user gameMsg args
 
 let interp
