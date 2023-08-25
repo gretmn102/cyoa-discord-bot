@@ -185,7 +185,7 @@ let reduce
 
             match act with
             | StartCyoa ->
-                let x = Model.startNewGame user.Id
+                let x = MyCmd.startNewGame user.Id
                 interp x state
 
     | RequestSlashCommand(e, action) ->
@@ -197,7 +197,7 @@ let reduce
                     Mvc.Controller.createSlashCommandApi
                         (interpView game.ViewArgs user)
                         (fun state ->
-                            let req = Model.MyCmd.End
+                            let req = MyCmd.Helpers.end'
                             req, state
                         )
                         restClient
@@ -207,7 +207,7 @@ let reduce
 
             match act with
             | StartCyoa ->
-                interp (Model.startNewGame user.Id) state
+                interp (MyCmd.startNewGame user.Id) state
 
     | ComponentInteractionCreateEventHandler(client, e, replyChannel) ->
         match replyChannel with
@@ -244,7 +244,7 @@ let reduce
                         Mvc.Controller.createComponentInteractionApi
                             (interpView game.ViewArgs user)
                             (fun state ->
-                                let req = Model.MyCmd.End
+                                let req = MyCmd.Helpers.end'
                                 req, state
                             )
                             restClient
@@ -252,7 +252,7 @@ let reduce
 
                     interp api client game
 
-                interp (Model.updateGame user.Id gameCommand) state
+                interp (MyCmd.updateGame user.Id gameCommand) state
 
 let reduceError msg =
     match msg with

@@ -1,4 +1,4 @@
-module IfEngine.Discord.Model
+namespace IfEngine.Discord.Model
 open FsharpMyExtension
 open DiscordBotExtensions.Types
 open DiscordBotExtensions.Mvc.Model
@@ -20,42 +20,46 @@ type MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStateme
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module MyCmd =
-    let mvcCmd fn next =
-        MyCmd.MvcCmd (fn (fun res ->
-            next res
-        ))
+    module Helpers =
+        let mvcCmd fn next =
+            MyCmd.MvcCmd (fn (fun res ->
+                next res
+            ))
 
-    let startNewGame arg next =
-        MyCmd.StartNewGame(arg, next)
+        let startNewGame arg next =
+            MyCmd.StartNewGame(arg, next)
 
-    let update gameState inputMsg next =
-        MyCmd.UpdateGame((gameState, inputMsg), next)
+        let update gameState inputMsg next =
+            MyCmd.UpdateGame((gameState, inputMsg), next)
 
-    let saveGameStateToDb userId gameState next =
-        MyCmd.SaveGameStateToDb((userId, gameState), next)
+        let saveGameStateToDb userId gameState next =
+            MyCmd.SaveGameStateToDb((userId, gameState), next)
 
-    let loadGameStateFromDb userId next =
-        MyCmd.LoadGameStateFromDb(userId, next)
+        let loadGameStateFromDb userId next =
+            MyCmd.LoadGameStateFromDb(userId, next)
 
-let startNewGame (userId: UserId) : MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
-    pipeBackwardBuilder {
-        let! gameState, gameOutputMsg = MyCmd.startNewGame ()
-        let! _ = MyCmd.mvcCmd (Cmd.responseCreateView false (ViewCmd.StartNewGame gameOutputMsg))
-        let! _ = MyCmd.saveGameStateToDb userId gameState
-        return MyCmd.End
-    }
+        let end' =
+            MyCmd.End
 
-let updateGame (userId: UserId) (gameInputMsg: InputMsg<'CustomStatementArg>) : MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
-    pipeBackwardBuilder {
-        let! gameState = MyCmd.loadGameStateFromDb userId
-        match gameState with
-        | Some gameState ->
-            let! gameState, gameOutputMsg = MyCmd.update gameState gameInputMsg
-            let! _ = MyCmd.mvcCmd (Cmd.responseUpdateCurrentView (ViewCmd.StartNewGame gameOutputMsg))
-            let! _ = MyCmd.saveGameStateToDb userId gameState
-            return MyCmd.End
-        | None ->
-            // TODO
-            printfn "Game not exists!"
-            return MyCmd.End
-    }
+    let startNewGame (userId: UserId) : MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
+        pipeBackwardBuilder {
+            let! gameState, gameOutputMsg = Helpers.startNewGame ()
+            let! _ = Helpers.mvcCmd (Cmd.responseCreateView false (ViewCmd.StartNewGame gameOutputMsg))
+            let! _ = Helpers.saveGameStateToDb userId gameState
+            return Helpers.end'
+        }
+
+    let updateGame (userId: UserId) (gameInputMsg: InputMsg<'CustomStatementArg>) : MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
+        pipeBackwardBuilder {
+            let! gameState = Helpers.loadGameStateFromDb userId
+            match gameState with
+            | Some gameState ->
+                let! gameState, gameOutputMsg = Helpers.update gameState gameInputMsg
+                let! _ = Helpers.mvcCmd (Cmd.responseUpdateCurrentView (ViewCmd.StartNewGame gameOutputMsg))
+                let! _ = Helpers.saveGameStateToDb userId gameState
+                return Helpers.end'
+            | None ->
+                // TODO
+                printfn "Game not exists!"
+                return Helpers.end'
+        }
