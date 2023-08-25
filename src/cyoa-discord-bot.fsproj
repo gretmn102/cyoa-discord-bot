@@ -10,8 +10,8 @@
   <ItemGroup>
     <Compile Include="IfEngine\Discord\Utils.fs" />
     <Compile Include="IfEngine\Discord\Model.fs" />
+    <Compile Include="IfEngine\Discord\View.fs" />
     <Compile Include="IfEngine\Discord\UserGamesStorage.fs" />
-    <Compile Include="IfEngine\Discord\Index.fs" />
     <Compile Include="Modules\Cyoa\Main.fs" />
     <Compile Include="MoraiGame.fs" />
     <Compile Include="SomeGame.fs" />

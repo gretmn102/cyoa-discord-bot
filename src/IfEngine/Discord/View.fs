@@ -1,4 +1,4 @@
-module IfEngine.Discord.Index
+module IfEngine.Discord.View
 open IfEngine.Engine
 open DSharpPlus
 open DSharpPlus.Entities

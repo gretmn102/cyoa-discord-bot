@@ -9,7 +9,7 @@ open IfEngine.Engine
 open DiscordBotExtensions.Types
 
 open IfEngine.Discord
-open IfEngine.Discord.Index
+open IfEngine.Discord.View
 open IfEngine.Discord.Model
 
 type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> =
@@ -83,14 +83,14 @@ type Msg =
     | ComponentInteractionCreateEventHandler of DiscordClient * EventArgs.ComponentInteractionCreateEventArgs * ViewComponentState
 
 let interpView
-    (args: Index.CreateViewArgs<'Content, 'CustomStatementOutput>)
+    (args: View.CreateViewArgs<'Content, 'CustomStatementOutput>)
     user
     (view: Model.ViewCmd<'Content, 'CustomStatementOutput>)
     : Entities.DiscordMessageBuilder =
 
     match view with
     | ViewCmd.StartNewGame gameMsg ->
-        Index.view user gameMsg args
+        View.view user gameMsg args
 
 let interp
     api

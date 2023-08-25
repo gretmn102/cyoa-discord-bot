@@ -17,7 +17,7 @@ let startFunnySockTales =
     "сказочки"
 
 let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
-    let args: IfEngine.Discord.Index.CreateViewArgs<_, _> =
+    let args: IfEngine.Discord.View.CreateViewArgs<_, _> =
         {
             MessageCyoaId =
                 "moraiGameId"
@@ -49,7 +49,7 @@ let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
     }
 
 let someGame: Cyoa.Main.Game<_,_,_,_,_> =
-    let args: IfEngine.Discord.Index.CreateViewArgs<_, _> =
+    let args: IfEngine.Discord.View.CreateViewArgs<_, _> =
         {
             MessageCyoaId =
                 "someGameId"
@@ -81,7 +81,7 @@ let someGame: Cyoa.Main.Game<_,_,_,_,_> =
     }
 
 let funnySockTales: Cyoa.Main.Game<_,_,_,_,_> =
-    let args: IfEngine.Discord.Index.CreateViewArgs<_, _> =
+    let args: IfEngine.Discord.View.CreateViewArgs<_, _> =
         {
             MessageCyoaId =
                 "funnySockTalesId"
