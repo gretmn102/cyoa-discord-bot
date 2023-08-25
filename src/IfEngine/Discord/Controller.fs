@@ -96,12 +96,12 @@ let interp
     api
     (client: DiscordClient)
     (game: Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>)
-    (req: Model.MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
+    (req: Model.AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
     (state: State<'Content,'Label>) =
 
     let rec interp cmd state =
         match cmd with
-        | Model.MyCmd.MvcCmd cmd ->
+        | Model.AbstractGame.MvcCmd cmd ->
             let cmd, state' =
                 Mvc.Controller.interp api cmd state.MvcState
 
@@ -112,7 +112,7 @@ let interp
 
             interp cmd state
 
-        | Model.MyCmd.SaveGameStateToDb((userId, gameState), next) ->
+        | Model.AbstractGame.SaveGameStateToDb((userId, gameState), next) ->
             let state =
                 { state with
                     Users =
@@ -127,7 +127,7 @@ let interp
 
             interp (next ()) state
 
-        | Model.MyCmd.LoadGameStateFromDb(userId, next) ->
+        | Model.AbstractGame.LoadGameStateFromDb(userId, next) ->
             let gameState =
                 state.Users
                 |> UserGamesStorage.Guilds.tryFindById userId
@@ -135,7 +135,7 @@ let interp
 
             interp (next gameState) state
 
-        | Model.MyCmd.StartNewGame((), next) ->
+        | Model.AbstractGame.StartNewGame((), next) ->
             let engine =
                 game.CreateGame game.InitGameState |> Result.get // TODO
 
@@ -144,7 +144,7 @@ let interp
             let cmd = next (gameState, gameOutputMsg)
             interp cmd state
 
-        | Model.MyCmd.UpdateGame((currentGameState, gameInpugMsg), next) ->
+        | Model.AbstractGame.UpdateGame((currentGameState, gameInpugMsg), next) ->
             let engine =
                 game.CreateGame currentGameState |> Result.get // TODO
                 |> Engine.update gameInpugMsg |> Result.get
@@ -153,7 +153,7 @@ let interp
             let cmd = next (gameState, gameOutputMsg)
             interp cmd state
 
-        | Model.MyCmd.End -> state
+        | Model.AbstractGame.End -> state
 
     interp req state
 
@@ -175,7 +175,7 @@ let reduce
                     Mvc.Controller.createMessageApi
                         (interpView game.ViewArgs user)
                         (fun state ->
-                            let req = Model.MyCmd.End
+                            let req = Model.AbstractGame.End
                             req, state
                         )
                         restClient
@@ -185,7 +185,7 @@ let reduce
 
             match act with
             | StartCyoa ->
-                let x = MyCmd.startNewGame user.Id
+                let x = AbstractGame.startNewGame user.Id
                 interp x state
 
     | RequestSlashCommand(e, action) ->
@@ -197,7 +197,7 @@ let reduce
                     Mvc.Controller.createSlashCommandApi
                         (interpView game.ViewArgs user)
                         (fun state ->
-                            let req = MyCmd.Helpers.end'
+                            let req = AbstractGame.Helpers.end'
                             req, state
                         )
                         restClient
@@ -207,7 +207,7 @@ let reduce
 
             match act with
             | StartCyoa ->
-                interp (MyCmd.startNewGame user.Id) state
+                interp (AbstractGame.startNewGame user.Id) state
 
     | ComponentInteractionCreateEventHandler(client, e, replyChannel) ->
         match replyChannel with
@@ -244,7 +244,7 @@ let reduce
                         Mvc.Controller.createComponentInteractionApi
                             (interpView game.ViewArgs user)
                             (fun state ->
-                                let req = MyCmd.Helpers.end'
+                                let req = AbstractGame.Helpers.end'
                                 req, state
                             )
                             restClient
@@ -252,7 +252,7 @@ let reduce
 
                     interp api client game
 
-                interp (MyCmd.updateGame user.Id gameCommand) state
+                interp (AbstractGame.updateGame user.Id gameCommand) state
 
 let reduceError msg =
     match msg with
