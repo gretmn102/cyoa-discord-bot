@@ -12,7 +12,7 @@
     <Compile Include="IfEngine\Discord\Model.fs" />
     <Compile Include="IfEngine\Discord\View.fs" />
     <Compile Include="IfEngine\Discord\UserGamesStorage.fs" />
-    <Compile Include="Modules\Cyoa\Main.fs" />
+    <Compile Include="IfEngine\Discord\Controller.fs" />
     <Compile Include="MoraiGame.fs" />
     <Compile Include="SomeGame.fs" />
     <Compile Include="SurpriseTales.fs" />

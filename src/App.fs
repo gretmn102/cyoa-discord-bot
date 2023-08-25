@@ -16,7 +16,7 @@ let startSome =
 let startFunnySockTales =
     "сказочки"
 
-let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
+let moraiGame: IfEngine.Discord.Controller.Game<_,_,_,_,_> =
     let args: IfEngine.Discord.View.CreateViewArgs<_, _> =
         {
             MessageCyoaId =
@@ -48,7 +48,7 @@ let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
             |}
     }
 
-let someGame: Cyoa.Main.Game<_,_,_,_,_> =
+let someGame: IfEngine.Discord.Controller.Game<_,_,_,_,_> =
     let args: IfEngine.Discord.View.CreateViewArgs<_, _> =
         {
             MessageCyoaId =
@@ -80,7 +80,7 @@ let someGame: Cyoa.Main.Game<_,_,_,_,_> =
             |}
     }
 
-let funnySockTales: Cyoa.Main.Game<_,_,_,_,_> =
+let funnySockTales: IfEngine.Discord.Controller.Game<_,_,_,_,_> =
     let args: IfEngine.Discord.View.CreateViewArgs<_, _> =
         {
             MessageCyoaId =
@@ -114,7 +114,7 @@ let funnySockTales: Cyoa.Main.Game<_,_,_,_,_> =
 
 let initBotModules restClient client (db: MongoDB.Driver.IMongoDatabase) =
     let create game =
-        Cyoa.Main.create restClient client db game
+        IfEngine.Discord.Controller.create restClient client db game
     [|
         create moraiGame
         create someGame
