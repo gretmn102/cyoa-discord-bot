@@ -5,7 +5,7 @@ open IfEngine.SyntaxTree.Helpers
 open Farkdown.Experimental.Helpers
 open FsharpMyExtension.ResultExt
 open IfEngine.Engine
-open IfEngine.Discord.Utils
+open IfEngine.Discord.SyntaxTree
 
 type CustomStatement = unit
 type CustomStatementArg = unit

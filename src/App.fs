@@ -22,7 +22,7 @@ let moraiGame: IfEngine.Discord.Controller.Game<_,_,_,_,_> =
             MessageCyoaId =
                 "moraiGameId"
             ContentToEmbed =
-                IfEngine.Discord.Utils.Content.ofCommon 2
+                IfEngine.Discord.SyntaxTree.Content.ofCommon 2
             CustomOutputView =
                 Cyoa.MoraiGame.customOutputView
         }
@@ -54,7 +54,7 @@ let someGame: IfEngine.Discord.Controller.Game<_,_,_,_,_> =
             MessageCyoaId =
                 "someGameId"
             ContentToEmbed =
-                IfEngine.Discord.Utils.Content.ofCommon 2
+                IfEngine.Discord.SyntaxTree.Content.ofCommon 2
             CustomOutputView =
                 SomeGame.customOutputView
         }
@@ -86,7 +86,7 @@ let funnySockTales: IfEngine.Discord.Controller.Game<_,_,_,_,_> =
             MessageCyoaId =
                 "funnySockTalesId"
             ContentToEmbed =
-                IfEngine.Discord.Utils.Content.ofCommon 2
+                IfEngine.Discord.SyntaxTree.Content.ofCommon 2
             CustomOutputView =
                 FunnySockTales.customOutputView
         }

@@ -8,7 +8,7 @@
     <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
   </Target>
   <ItemGroup>
-    <Compile Include="IfEngine\Discord\Utils.fs" />
+    <Compile Include="IfEngine\Discord\SyntaxTree.fs" />
     <Compile Include="IfEngine\Discord\Model.fs" />
     <Compile Include="IfEngine\Discord\View.fs" />
     <Compile Include="IfEngine\Discord\UserGamesStorage.fs" />
