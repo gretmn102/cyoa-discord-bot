@@ -16,6 +16,8 @@ type Label =
     | StartTaleAboutKing
     | StartTaleAboutSvarshik
 
+type Scenario = Scenario<CommonContentWithNarrator, Label, CustomStatement>
+
 let beginLoc: Label = Menu
 
 let menu caption choices =
@@ -673,9 +675,8 @@ let taleAboutWizard =
         ]
     ]
 
-let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
+let (scenario: Scenario) =
     [
-        let rec preludeLoc = nameof preludeLoc
         label Menu [
             surpriseMenu [
                 p [[ text "Привет, путник! Какую сказку хочешь послушать? "]]
@@ -702,7 +703,6 @@ let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
     ]
     |> List.map (fun (labelName, body) -> labelName, (labelName, body))
     |> Map.ofList
-    : Scenario<_, _, _>
 
 type CustomStatementOutput = unit
 

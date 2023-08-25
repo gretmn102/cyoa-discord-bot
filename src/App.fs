@@ -13,7 +13,7 @@ let startMorai =
     "startMorai"
 let startSome =
     "startSome"
-let startSurpriseTales =
+let startFunnySockTales =
     "сказочки"
 
 let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
@@ -80,35 +80,35 @@ let someGame: Cyoa.Main.Game<_,_,_,_,_> =
             |}
     }
 
-let surpriseTales: Cyoa.Main.Game<_,_,_,_,_> =
+let funnySockTales: Cyoa.Main.Game<_,_,_,_,_> =
     let args: IfEngine.Discord.Index.CreateViewArgs<_, _> =
         {
             MessageCyoaId =
-                "surpriseTalesId"
+                "funnySockTalesId"
             ContentToEmbed =
                 IfEngine.Discord.Utils.Content.ofCommon 2
             CustomOutputView =
-                SurpriseTales.customOutputView
+                FunnySockTales.customOutputView
         }
 
     {
         ViewArgs = args
         CreateGame =
             IfEngine.Engine.Engine.create
-                SurpriseTales.customStatementHandler
-                SurpriseTales.scenario
+                FunnySockTales.customStatementHandler
+                FunnySockTales.scenario
         InitGameState =
             IfEngine.State.init
-                SurpriseTales.beginLoc
+                FunnySockTales.beginLoc
                 Map.empty
         DbCollectionName =
-            "surprise_tales"
+            "funny_sock_tales"
         RawCommandStart =
-            startSurpriseTales
+            startFunnySockTales
         SlashCommandStart =
             {|
-                Name = "start-surprise-tales"
-                Description = "Запустить сказочки Ее Носочества"
+                Name = "start-funny-sock-tales"
+                Description = "Запустить сказочки «Веселого носка»"
             |}
     }
 
@@ -118,7 +118,7 @@ let initBotModules restClient client (db: MongoDB.Driver.IMongoDatabase) =
     [|
         create moraiGame
         create someGame
-        create surpriseTales
+        create funnySockTales
     |]
 
 open MongoDB.Driver
