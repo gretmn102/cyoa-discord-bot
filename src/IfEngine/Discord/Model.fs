@@ -1,4 +1,4 @@
-module Cyoa.Model
+module IfEngine.Discord.Model
 open FsharpMyExtension
 open DiscordBotExtensions.Types
 open DiscordBotExtensions.Mvc.Model

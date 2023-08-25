@@ -6,11 +6,11 @@ open FsharpMyExtension.ResultExt
 open DiscordBotExtensions
 open DiscordBotExtensions.Extensions
 open IfEngine.Engine
+open DiscordBotExtensions.Types
+
 open IfEngine.Discord
 open IfEngine.Discord.Index
-
-open Model
-open DiscordBotExtensions.Types
+open IfEngine.Discord.Model
 
 type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> =
     {
