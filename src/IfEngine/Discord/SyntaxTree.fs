@@ -19,32 +19,32 @@ module Narrator =
             AvatarUrl = avatarUrl
         }
 
-type CommonContentWithNarrator =
+type NarratorCommonContent =
     {
         Narrator: Narrator option
         Content: CommonContent.Content
     }
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
-module CommonContentWithNarrator =
+module NarratorCommonContent =
     let create narrator content =
         {
             Narrator = narrator
             Content = content
         }
 
-    let createSay content : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
+    let createSay content : Stmt<NarratorCommonContent, 'Label, 'CustomStatement> =
         Say (create None content)
 
-    let createNarratorSay narrator content : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
+    let createNarratorSay narrator content : Stmt<NarratorCommonContent, 'Label, 'CustomStatement> =
         Say (create (Some narrator) content)
 
-    let createMenu caption choices : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
+    let createMenu caption choices : Stmt<NarratorCommonContent, 'Label, 'CustomStatement> =
         menu
             (create None caption)
             choices
 
-    let createNarratorMenu narrator caption choices : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
+    let createNarratorMenu narrator caption choices : Stmt<NarratorCommonContent, 'Label, 'CustomStatement> =
         menu
             (create
                 (Some narrator)
@@ -174,7 +174,7 @@ module Content =
                     let parse =
                         flip run parser
 
-                let toDiscordEmbed indent (statements: CommonContentWithNarrator) : DiscordEmbed =
+                let toDiscordEmbed indent (statements: NarratorCommonContent) : DiscordEmbed =
                     let rest, result = FUniversalParser.parse statements.Content
                     match result with
                     | Right x ->
@@ -206,7 +206,7 @@ module Content =
                     | Left err ->
                         failwithf "%A\n%A" err rest
 
-    let ofCommon spacesIndentSize (content: CommonContentWithNarrator) : Content =
+    let ofCommon spacesIndentSize (content: NarratorCommonContent) : Content =
         Farkdown.Markdown.Document.toDiscordEmbed spacesIndentSize content
 
 let say' (txt: string) : Content =

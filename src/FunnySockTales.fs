@@ -24,10 +24,10 @@ let jungleNarrator =
         "https://cdn.discordapp.com/attachments/912291464074117161/1144364493657358406/jungledrum700Avatar.webp"
 
 let say content =
-    CommonContentWithNarrator.createSay content
+    NarratorCommonContent.createSay content
 
 let menu content =
-    CommonContentWithNarrator.createMenu content
+    NarratorCommonContent.createMenu content
 
 module ScenarioConverter =
     [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
@@ -94,7 +94,7 @@ module ScenarioConverter =
         Scenario.mapLabel labelMapping
         >> Seq.map (fun x -> x.Value)
 
-let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
+let (scenario: Scenario<NarratorCommonContent, Label, CustomStatement>) =
     [
         label Label.Menu [
             menu [
@@ -125,7 +125,7 @@ let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
 
 type CustomStatementOutput = unit
 
-let customStatementHandler : CustomStatementHandler<CommonContentWithNarrator,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
+let customStatementHandler : CustomStatementHandler<NarratorCommonContent,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
     CustomStatementHandler.empty
 
 let customOutputView (customOutput: CustomStatementOutput) =

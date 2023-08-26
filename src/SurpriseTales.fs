@@ -16,15 +16,15 @@ type Label =
     | StartTaleAboutKing
     | StartTaleAboutSvarshik
 
-type Scenario = Scenario<CommonContentWithNarrator, Label, CustomStatement>
+type Scenario = Scenario<NarratorCommonContent, Label, CustomStatement>
 
 let beginLoc: Label = Menu
 
 let menu caption choices =
-    CommonContentWithNarrator.createMenu caption choices
+    NarratorCommonContent.createMenu caption choices
 
 let say content =
-    CommonContentWithNarrator.createSay content
+    NarratorCommonContent.createSay content
 
 let bluetoothNarrator =
     Narrator.create
@@ -32,17 +32,17 @@ let bluetoothNarrator =
         "https://cdn.discordapp.com/avatars/884492693475053639/d6a06abf4c3458f29ff32bde06dec390.webp?size=48"
 
 let bluetoothSay =
-    CommonContentWithNarrator.createNarratorSay bluetoothNarrator
+    NarratorCommonContent.createNarratorSay bluetoothNarrator
 
 let surpriseNarrator =
     Narrator.create "Сказочница" "https://cdn.discordapp.com/avatars/807631911131807765/716cf4e01b5450e4e39de93bb9aaa3e7.webp?size=48"
 
 let surpriseMenu =
-    CommonContentWithNarrator.createNarratorMenu
+    NarratorCommonContent.createNarratorMenu
         surpriseNarrator
 
 let surpriseSay =
-    CommonContentWithNarrator.createNarratorSay surpriseNarrator
+    NarratorCommonContent.createNarratorSay surpriseNarrator
 
 let agentNarrator =
     Narrator.create
@@ -50,7 +50,7 @@ let agentNarrator =
         "https://cdn.discordapp.com/avatars/796931597898088448/e9c47d2b4a6e14797d1d348e69a33836.webp?size=48"
 
 let agentSay =
-    CommonContentWithNarrator.createNarratorSay agentNarrator
+    NarratorCommonContent.createNarratorSay agentNarrator
 
 let adalindaNarrator =
     Narrator.create
@@ -58,7 +58,7 @@ let adalindaNarrator =
         "https://cdn.discordapp.com/avatars/572010412157960192/407a80311750dc55d6d4abe188c545b4.webp?size=48"
 
 let adalindaSay =
-    CommonContentWithNarrator.createNarratorSay adalindaNarrator
+    NarratorCommonContent.createNarratorSay adalindaNarrator
 
 let sobenokNarrator =
     Narrator.create
@@ -66,7 +66,7 @@ let sobenokNarrator =
         "https://cdn.discordapp.com/guilds/927554008263032832/users/516737047147446272/avatars/a25b7a033b212f52ff822da145c47201.webp?size=48"
 
 let sobenokSay =
-    CommonContentWithNarrator.createNarratorSay sobenokNarrator
+    NarratorCommonContent.createNarratorSay sobenokNarrator
 
 let taleAboutSvarshik =
     [
@@ -720,7 +720,7 @@ let (scenario: Scenario) =
 
 type CustomStatementOutput = unit
 
-let customStatementHandler : CustomStatementHandler<CommonContentWithNarrator,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
+let customStatementHandler : CustomStatementHandler<NarratorCommonContent,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
     CustomStatementHandler.empty
 
 let customOutputView (customOutput: CustomStatementOutput) =

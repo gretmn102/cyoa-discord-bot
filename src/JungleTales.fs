@@ -17,7 +17,7 @@ type Label =
 let beginLoc: Label = Menu
 
 let say content =
-    CommonContentWithNarrator.createSay content
+    NarratorCommonContent.createSay content
 
 let jungleNarrator =
     Narrator.create
@@ -25,10 +25,10 @@ let jungleNarrator =
         "https://cdn.discordapp.com/attachments/912291464074117161/1144364493657358406/jungledrum700Avatar.webp"
 
 let jungleSay content =
-    CommonContentWithNarrator.createNarratorSay jungleNarrator content
+    NarratorCommonContent.createNarratorSay jungleNarrator content
 
 let jungleMenu content =
-    CommonContentWithNarrator.createNarratorMenu jungleNarrator content
+    NarratorCommonContent.createNarratorMenu jungleNarrator content
 
 let agentNarrator =
     Narrator.create
@@ -36,7 +36,7 @@ let agentNarrator =
         "https://cdn.discordapp.com/avatars/796931597898088448/e9c47d2b4a6e14797d1d348e69a33836.webp?size=48"
 
 let agentSay content =
-    CommonContentWithNarrator.createNarratorSay agentNarrator content
+    NarratorCommonContent.createNarratorSay agentNarrator content
 
 let taleAboutDolls =
     [
@@ -120,7 +120,7 @@ let taleAboutDolls =
         ]
     ]
 
-let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
+let (scenario: Scenario<NarratorCommonContent, Label, CustomStatement>) =
     [
         label Menu [
             jungleMenu [
@@ -139,7 +139,7 @@ let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
 
 type CustomStatementOutput = unit
 
-let customStatementHandler : CustomStatementHandler<CommonContentWithNarrator,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
+let customStatementHandler : CustomStatementHandler<NarratorCommonContent,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
     CustomStatementHandler.empty
 
 let customOutputView (customOutput: CustomStatementOutput) =

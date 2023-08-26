@@ -16,14 +16,14 @@ type Label =
     | Label3
 
 let menu caption choices =
-    CommonContentWithNarrator.createMenu caption choices
+    NarratorCommonContent.createMenu caption choices
 
 let say content =
-    CommonContentWithNarrator.createSay content
+    NarratorCommonContent.createSay content
 
 let beginLoc: Label = Label1
 
-let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
+let (scenario: Scenario<NarratorCommonContent, Label, CustomStatement>) =
     // https://imgur.com/a/FXkyeUC
     let images =
         [|
@@ -89,7 +89,7 @@ let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
 
 type CustomStatementOutput = unit
 
-let customStatementHandler : CustomStatementHandler<CommonContentWithNarrator,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
+let customStatementHandler : CustomStatementHandler<NarratorCommonContent,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
     CustomStatementHandler.empty
 
 let customOutputView (customOutput: CustomStatementOutput) =

@@ -16,12 +16,12 @@ let mainMenuLoc = "MainMenu"
 let beginLoc: Label = mainMenuLoc
 
 let menu caption choices =
-    CommonContentWithNarrator.createMenu caption choices
+    NarratorCommonContent.createMenu caption choices
 
 let say content =
-    CommonContentWithNarrator.createSay content
+    NarratorCommonContent.createSay content
 
-let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
+let (scenario: Scenario<NarratorCommonContent, Label, CustomStatement>) =
     [
         let rec preludeLoc = nameof preludeLoc
         label mainMenuLoc [
@@ -709,7 +709,7 @@ let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
 
 type CustomStatementOutput = unit
 
-let customStatementHandler : CustomStatementHandler<CommonContentWithNarrator,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
+let customStatementHandler : CustomStatementHandler<NarratorCommonContent,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
     CustomStatementHandler.empty
 
 let customOutputView (customOutput: CustomStatementOutput) =
