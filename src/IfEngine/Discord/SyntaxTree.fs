@@ -39,9 +39,6 @@ module CommonContentWithNarrator =
     let createNarratorSay narrator content : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
         Say (create (Some narrator) content)
 
-    let createNarratorSay' name avatarUrl content : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
-        Say (create (Narrator.create name avatarUrl |> Some) content)
-
     let createMenu caption choices : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
         menu
             (create None caption)
