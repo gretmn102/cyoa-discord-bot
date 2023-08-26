@@ -29,7 +29,7 @@ let say content =
 let menu content =
     NarratorCommonContent.createMenu content
 
-module ScenarioConverter =
+module SyntaxTree =
     [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
     [<RequireQualifiedAccess>]
     module Choice =
@@ -90,9 +90,11 @@ module ScenarioConverter =
                 )
                 Map.empty
 
-    let convert (labelMapping: 'OldLabel -> 'NewLabel) =
-        Scenario.mapLabel labelMapping
-        >> Seq.map (fun x -> x.Value)
+        let toNamedBlockSeq (scenario: Scenario<_, _, _>) : seq<NamedBlock<'a,'b,'c>> =
+            scenario
+            |> Seq.map (fun x -> x.Value)
+
+open SyntaxTree
 
 let (scenario: Scenario<NarratorCommonContent, Label, CustomStatement>) =
     [
@@ -114,11 +116,13 @@ let (scenario: Scenario<NarratorCommonContent, Label, CustomStatement>) =
 
         yield!
             SurpriseTales.scenario
-            |> ScenarioConverter.convert Label.SurpriseTales
+            |> Scenario.mapLabel Label.SurpriseTales
+            |> Scenario.toNamedBlockSeq
 
         yield!
             JungleTales.scenario
-            |> ScenarioConverter.convert Label.JungleTales
+            |> Scenario.mapLabel Label.JungleTales
+            |> Scenario.toNamedBlockSeq
     ]
     |> List.map (fun (labelName, body) -> labelName, (labelName, body))
     |> Map.ofList
