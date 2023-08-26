@@ -29,7 +29,7 @@ NUGET
       YamlDotNet (>= 8.1.2)
     FUniversalParser (0.4.0)
       FSharpMyExt (>= 2.0.0-prerelease.2)
-    IfEngine (2.0.0-prerelease.1)
+    IfEngine (2.0.0-prerelease.2)
       Farkdown (>= 0.2.0-prerelease)
       FSharp.Core (>= 5.0.1)
       FSharpMyExt (>= 2.0.0-prerelease.3)
