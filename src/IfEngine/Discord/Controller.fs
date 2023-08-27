@@ -91,6 +91,8 @@ let interpView
     match view with
     | AbstractView.StartNewGame gameMsg ->
         View.view user gameMsg args
+    | AbstractView.GameBelongsToSomeoneElse args ->
+        View.gameBelongsToSomeoneElseView args
 
 let interp
     api
@@ -214,45 +216,40 @@ let reduce
         | ViewComponentState.GameView componentState ->
             let commandPrefix = "." // todo
 
-            if componentState.Data.OwnerId <> e.User.Id then
-                let b = Entities.DiscordInteractionResponseBuilder()
-                b.Content <-
-                    sprintf "Здесь играет <@%d>, чтобы самому поиграть, введите `%s%s`"
-                        componentState.Data.OwnerId
-                        commandPrefix
-                        game.RawCommandStart
-                b.IsEphemeral <- true
-                awaiti <| e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, b)
+            let componentId = componentState.ComponentId
 
+            let gameCommand =
+                match componentId with
+                | ComponentId.NextButtonId ->
+                    InputMsg.Next
+                | ComponentId.SelectMenuId ->
+                    let selected = int e.Values.[0]
+                    InputMsg.Choice selected
+                | x ->
+                    failwithf "%A componentId not implemented yet!" x
+
+            let user = e.Interaction.User
+            let interp =
+                let api =
+                    Mvc.Controller.createComponentInteractionApi
+                        (interpView game.ViewArgs user)
+                        (fun state ->
+                            let req = AbstractGame.Helpers.end'
+                            req, state
+                        )
+                        restClient
+                        e
+
+                interp api client game
+
+            interp
+                (AbstractGame.updateGame
+                    commandPrefix
+                    game.RawCommandStart
+                    componentState.Data.OwnerId
+                    user.Id
+                    gameCommand)
                 state
-            else
-                let componentId = componentState.ComponentId
-
-                let gameCommand =
-                    match componentId with
-                    | ComponentId.NextButtonId ->
-                        InputMsg.Next
-                    | ComponentId.SelectMenuId ->
-                        let selected = int e.Values.[0]
-                        InputMsg.Choice selected
-                    | x ->
-                        failwithf "%A componentId not implemented yet!" x
-
-                let user = e.Interaction.User
-                let interp =
-                    let api =
-                        Mvc.Controller.createComponentInteractionApi
-                            (interpView game.ViewArgs user)
-                            (fun state ->
-                                let req = AbstractGame.Helpers.end'
-                                req, state
-                            )
-                            restClient
-                            e
-
-                    interp api client game
-
-                interp (AbstractGame.updateGame user.Id gameCommand) state
 
 let reduceError msg =
     match msg with

@@ -176,3 +176,12 @@ let view
         b
     | OutputMsg.CustomStatement(arg) ->
         args.CustomOutputView arg
+
+let gameBelongsToSomeoneElseView (args : Model.GameBelongsToSomeoneElseViewArgs) =
+    let b = DiscordMessageBuilder()
+    b.Content <-
+        sprintf "Здесь играет <@%d>, чтобы самому поиграть, введите `%s%s`"
+            args.OwnerId
+            args.CommandPrefix
+            args.RawCommandName
+    b

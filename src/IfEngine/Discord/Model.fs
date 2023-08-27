@@ -4,9 +4,32 @@ open DiscordBotExtensions.Types
 open DiscordBotExtensions.Mvc.Model
 open IfEngine.Engine
 
-[<RequireQualifiedAccess;Struct>]
+type GameBelongsToSomeoneElseViewArgs =
+    {
+        OwnerId: UserId
+        CommandPrefix: string
+        RawCommandName: string
+    }
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module GameBelongsToSomeoneElseViewArgs =
+    let create ownerId commandPrefix rawCommandName =
+        {
+            OwnerId = ownerId
+            CommandPrefix = commandPrefix
+            RawCommandName = rawCommandName
+        }
+
+[<RequireQualifiedAccess>]
 type AbstractView<'Content, 'CustomStatementOutput> =
     | StartNewGame of OutputMsg<'Content,'CustomStatementOutput>
+    | GameBelongsToSomeoneElse of GameBelongsToSomeoneElseViewArgs
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module AbstractView =
+    let createGameBelongsToSomeoneElse x =
+        AbstractView.GameBelongsToSomeoneElse x
 
 [<RequireQualifiedAccess>]
 type AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
@@ -41,6 +64,20 @@ module AbstractGame =
         let end' =
             AbstractGame.End
 
+    let testUserIsOwnerGame commandPrefix rawCommandName (ownerId: UserId) (userId: UserId) next =
+        pipeBackwardBuilder {
+            if ownerId <> userId then
+                let! _ =
+                    Helpers.mvcCmd
+                        (Cmd.responseCreateView
+                            true
+                            (GameBelongsToSomeoneElseViewArgs.create ownerId commandPrefix rawCommandName
+                             |> AbstractView.createGameBelongsToSomeoneElse))
+                return Helpers.end'
+            else
+                return next ()
+        }
+
     let startNewGame (userId: UserId) : AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
         pipeBackwardBuilder {
             let! gameState, gameOutputMsg = Helpers.startNewGame ()
@@ -49,8 +86,9 @@ module AbstractGame =
             return Helpers.end'
         }
 
-    let updateGame (userId: UserId) (gameInputMsg: InputMsg<'CustomStatementArg>) : AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
+    let updateGame commandPrefix rawCommandName (ownerId: UserId) (userId: UserId) (gameInputMsg: InputMsg<'CustomStatementArg>) : AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
         pipeBackwardBuilder {
+            do! testUserIsOwnerGame commandPrefix rawCommandName ownerId userId
             let! gameState = Helpers.loadGameStateFromDb userId
             match gameState with
             | Some gameState ->
