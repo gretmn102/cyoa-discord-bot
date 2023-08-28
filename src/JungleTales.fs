@@ -117,6 +117,11 @@ let taleAboutDolls =
             agentSay [
                 p [[ text "Значит, талантливый, но безмерно скромный Агений ночами не спал и мастерил эту свахо-юдо кринжовое, а потом прискакала единорог, приложила ей по лбу рогом, и та вмиг поумнела. И Агений такой: \"Ну да, ну да <:pepeEyesRoll:1133303912225587260>\"" ]]
             ]
+
+            jungleSay [
+                p [[ text "Да. Пока на этом всё! Продолжение будет в следующих сериях!" ]]
+                p [[ img "https://media.tenor.com/eludMOSyaaIAAAAd/santa-barbara-kocci.gif" "santa-barbara" "santa-barbara" ]]
+            ]
         ]
     ]
 
