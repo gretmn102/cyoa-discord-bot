@@ -15,13 +15,9 @@ type Label =
     | Menu
     | SurpriseTales of SurpriseTales.Label
     | JungleTales of JungleTales.Label
+    | BoomerangTales of BoomerangTales.Label
 
 let beginLoc = Label.Menu
-
-let jungleNarrator =
-    Narrator.create
-        "Единолошад"
-        "https://cdn.discordapp.com/attachments/912291464074117161/1144364493657358406/jungledrum700Avatar.webp"
 
 let say content =
     NarratorCommonContent.createSay content
@@ -44,6 +40,10 @@ let (scenario: Scenario<NarratorCommonContent, Label, CustomStatement>) =
                 choice "Единорожью деву" [
                     jump (Label.JungleTales JungleTales.beginLoc)
                 ]
+
+                choice "Бумеранга" [
+                    jump (Label.BoomerangTales BoomerangTales.beginLoc)
+                ]
             ]
         ]
 
@@ -55,6 +55,11 @@ let (scenario: Scenario<NarratorCommonContent, Label, CustomStatement>) =
         yield!
             JungleTales.scenario
             |> Scenario.mapLabel Label.JungleTales
+            |> Scenario.toNamedBlockSeq
+
+        yield!
+            BoomerangTales.scenario
+            |> Scenario.mapLabel Label.BoomerangTales
             |> Scenario.toNamedBlockSeq
     ]
     |> List.map (fun (labelName, body) -> labelName, (labelName, body))
