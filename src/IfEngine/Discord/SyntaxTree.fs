@@ -1,68 +1,9 @@
-module IfEngine.Discord.Utils
+module IfEngine.Discord.SyntaxTree
 open IfEngine.SyntaxTree
 open IfEngine.SyntaxTree.Helpers
-open IfEngine.SyntaxTree.CommonContent.Helpers
 open DSharpPlus.Entities
 open DiscordBotExtensions.Extensions
 open FsharpMyExtension.Either
-
-type Narrator =
-    {
-        Name: string
-        AvatarUrl: string
-    }
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-[<RequireQualifiedAccess>]
-module Narrator =
-    let create name avatarUrl : Narrator =
-        {
-            Name = name
-            AvatarUrl = avatarUrl
-        }
-
-type CommonContentWithNarrator =
-    {
-        Narrator: Narrator option
-        Content: CommonContent.Content
-    }
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-[<RequireQualifiedAccess>]
-module CommonContentWithNarrator =
-    let create narrator content =
-        {
-            Narrator = narrator
-            Content = content
-        }
-
-    let createSay content : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
-        Say (create None content)
-
-    let createNarratorSay narrator content : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
-        Say (create (Some narrator) content)
-
-    let createNarratorSay' name avatarUrl content : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
-        Say (create (Narrator.create name avatarUrl |> Some) content)
-
-    let createMenu caption choices : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
-        menu
-            (create None caption)
-            choices
-
-    let createNarratorMenu narrator caption choices : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
-        menu
-            (create
-                (Some narrator)
-                caption
-            )
-            choices
-
-    let createNarratorMenu' name avatarUrl caption choices : Stmt<CommonContentWithNarrator, 'Label, 'CustomStatement> =
-        menu
-            (create
-                (Narrator.create name avatarUrl |> Some)
-                caption
-            )
-            choices
 
 type Content = DiscordEmbed
 
@@ -186,7 +127,7 @@ module Content =
                     let parse =
                         flip run parser
 
-                let toDiscordEmbed indent (statements: CommonContentWithNarrator) : DiscordEmbed =
+                let toDiscordEmbed indent (statements: NarratorCommonContent) : DiscordEmbed =
                     let rest, result = FUniversalParser.parse statements.Content
                     match result with
                     | Right x ->
@@ -218,7 +159,7 @@ module Content =
                     | Left err ->
                         failwithf "%A\n%A" err rest
 
-    let ofCommon spacesIndentSize (content: CommonContentWithNarrator) : Content =
+    let ofCommon spacesIndentSize (content: NarratorCommonContent) : Content =
         Farkdown.Markdown.Document.toDiscordEmbed spacesIndentSize content
 
 let say' (txt: string) : Content =

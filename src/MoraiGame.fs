@@ -4,7 +4,8 @@ open IfEngine.SyntaxTree
 open IfEngine.SyntaxTree.Helpers
 open Farkdown.Experimental.Helpers
 open FsharpMyExtension.ResultExt
-open IfEngine.Discord.Utils
+open IfEngine.Engine
+open IfEngine.Discord.SyntaxTree
 
 type CustomStatement = unit
 type CustomStatementArg = unit
@@ -15,12 +16,12 @@ let mainMenuLoc = "MainMenu"
 let beginLoc: Label = mainMenuLoc
 
 let menu caption choices =
-    CommonContentWithNarrator.createMenu caption choices
+    NarratorCommonContent.createMenu caption choices
 
 let say content =
-    CommonContentWithNarrator.createSay content
+    NarratorCommonContent.createSay content
 
-let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
+let (scenario: Scenario<NarratorCommonContent, Label, CustomStatement>) =
     [
         let rec preludeLoc = nameof preludeLoc
         label mainMenuLoc [
@@ -706,21 +707,10 @@ let (scenario: Scenario<CommonContentWithNarrator, Label, CustomStatement>) =
     |> Map.ofList
     : Scenario<_, _, _>
 
-open IfEngine.Engine
-type State = State<CommonContentWithNarrator, Label>
 type CustomStatementOutput = unit
-type Engine = Engine<CommonContentWithNarrator, Label, CustomStatement, CustomStatementArg, CustomStatementOutput>
 
-let initGameState: State =
-    State.init
-        beginLoc
-        Map.empty
-
-let create (state: State) : Result<Engine, string> =
-    Engine.create
-        CustomStatementHandler.empty
-        scenario
-        state
+let customStatementHandler : CustomStatementHandler<NarratorCommonContent,Label,CustomStatement,CustomStatementArg,CustomStatementOutput> =
+    CustomStatementHandler.empty
 
 let customOutputView (customOutput: CustomStatementOutput) =
     failwithf "has not implemented"

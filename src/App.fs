@@ -13,24 +13,34 @@ let startMorai =
     "startMorai"
 let startSome =
     "startSome"
-let startSurpriseTales =
+let startFunnySockTales =
     "сказочки"
 
-let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
+let moraiGame: IfEngine.Discord.Controller.Game<_,_,_,_,_> =
+    let args: IfEngine.Discord.View.CreateViewArgs<_, _> =
+        {
+            MessageCyoaId =
+                "moraiGameId"
+            ContentToEmbed =
+                IfEngine.Discord.SyntaxTree.Content.ofCommon 2
+            CustomOutputView =
+                Cyoa.MoraiGame.customOutputView
+        }
+
     {
-        MessageCyoaId = "moraiGameId"
+        ViewArgs = args
         CreateGame =
-            Cyoa.MoraiGame.create
-        ContentToEmbed =
-            IfEngine.Discord.Utils.Content.ofCommon 2
+            IfEngine.Engine.Engine.create
+                Cyoa.MoraiGame.customStatementHandler
+                Cyoa.MoraiGame.scenario
         InitGameState =
-            Cyoa.MoraiGame.initGameState
+            IfEngine.State.init
+                Cyoa.MoraiGame.beginLoc
+                Map.empty
         DbCollectionName =
             "morai-game"
         RawCommandStart =
             startMorai
-        CustomOutputView =
-            Cyoa.MoraiGame.customOutputView
         SlashCommandStart =
             {|
                 Name = "start-morai-tales"
@@ -38,21 +48,31 @@ let moraiGame: Cyoa.Main.Game<_,_,_,_,_> =
             |}
     }
 
-let someGame: Cyoa.Main.Game<_,_,_,_,_> =
+let someGame: IfEngine.Discord.Controller.Game<_,_,_,_,_> =
+    let args: IfEngine.Discord.View.CreateViewArgs<_, _> =
+        {
+            MessageCyoaId =
+                "someGameId"
+            ContentToEmbed =
+                IfEngine.Discord.SyntaxTree.Content.ofCommon 2
+            CustomOutputView =
+                SomeGame.customOutputView
+        }
+
     {
-        MessageCyoaId = "someGameId"
+        ViewArgs = args
         CreateGame =
-            SomeGame.create
-        ContentToEmbed =
-            IfEngine.Discord.Utils.Content.ofCommon 2
+            IfEngine.Engine.Engine.create
+                SomeGame.customStatementHandler
+                SomeGame.scenario
         InitGameState =
-            SomeGame.initGameState
+            IfEngine.State.init
+                SomeGame.beginLoc
+                Map.empty
         DbCollectionName =
             "some-game"
         RawCommandStart =
             startSome
-        CustomOutputView =
-            SomeGame.customOutputView
         SlashCommandStart =
             {|
                 Name = "start-some-cyoa"
@@ -60,35 +80,45 @@ let someGame: Cyoa.Main.Game<_,_,_,_,_> =
             |}
     }
 
-let surpriseTales: Cyoa.Main.Game<_,_,_,_,_> =
+let funnySockTales: IfEngine.Discord.Controller.Game<_,_,_,_,_> =
+    let args: IfEngine.Discord.View.CreateViewArgs<_, _> =
+        {
+            MessageCyoaId =
+                "funnySockTalesId"
+            ContentToEmbed =
+                IfEngine.Discord.SyntaxTree.Content.ofCommon 2
+            CustomOutputView =
+                FunnySockTales.customOutputView
+        }
+
     {
-        MessageCyoaId = "surpriseTalesId"
+        ViewArgs = args
         CreateGame =
-            SurpriseTales.create
-        ContentToEmbed =
-            IfEngine.Discord.Utils.Content.ofCommon 2
+            IfEngine.Engine.Engine.create
+                FunnySockTales.customStatementHandler
+                FunnySockTales.scenario
         InitGameState =
-            SurpriseTales.initGameState
+            IfEngine.State.init
+                FunnySockTales.beginLoc
+                Map.empty
         DbCollectionName =
-            "surprise_tales"
+            "funny_sock_tales"
         RawCommandStart =
-            startSurpriseTales
-        CustomOutputView =
-            SurpriseTales.customOutputView
+            startFunnySockTales
         SlashCommandStart =
             {|
-                Name = "start-surprise-tales"
-                Description = "Запустить сказочки Ее Носочества"
+                Name = "start-funny-sock-tales"
+                Description = "Запустить сказочки «Веселого носка»"
             |}
     }
 
 let initBotModules restClient client (db: MongoDB.Driver.IMongoDatabase) =
     let create game =
-        Cyoa.Main.create restClient client db game
+        IfEngine.Discord.Controller.create restClient client db game
     [|
         create moraiGame
         create someGame
-        create surpriseTales
+        create funnySockTales
     |]
 
 open MongoDB.Driver

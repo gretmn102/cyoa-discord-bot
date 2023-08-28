@@ -8,13 +8,17 @@
     <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
   </Target>
   <ItemGroup>
-    <Compile Include="IfEngine\Discord\Utils.fs" />
-    <Compile Include="IfEngine\Discord\Index.fs" />
-    <Compile Include="Modules\Cyoa\MoraiGame.fs" />
-    <Compile Include="Modules\Cyoa\Model.fs" />
-    <Compile Include="Modules\Cyoa\Main.fs" />
+    <Compile Include="IfEngine\Discord\SyntaxTree.fs" />
+    <Compile Include="IfEngine\Discord\Model.fs" />
+    <Compile Include="IfEngine\Discord\View.fs" />
+    <Compile Include="IfEngine\Discord\UserGamesStorage.fs" />
+    <Compile Include="IfEngine\Discord\Controller.fs" />
+    <Compile Include="MoraiGame.fs" />
     <Compile Include="SomeGame.fs" />
     <Compile Include="SurpriseTales.fs" />
+    <Compile Include="JungleTales.fs" />
+    <Compile Include="BoomerangTales.fs" />
+    <Compile Include="FunnySockTales.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />

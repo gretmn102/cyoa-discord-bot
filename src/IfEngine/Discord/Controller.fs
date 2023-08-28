@@ -1,4 +1,4 @@
-module Cyoa.Main
+module IfEngine.Discord.Controller
 open DSharpPlus
 open FsharpMyExtension
 open FsharpMyExtension.Either
@@ -6,15 +6,15 @@ open FsharpMyExtension.ResultExt
 open DiscordBotExtensions
 open DiscordBotExtensions.Extensions
 open IfEngine.Engine
+open DiscordBotExtensions.Types
 
-open Model
+open IfEngine.Discord
+open IfEngine.Discord.View
+open IfEngine.Discord.Model
 
 type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput> =
     {
-        MessageCyoaId: Interaction.FormId
-        ContentToEmbed: 'Content -> Entities.DiscordEmbed
-        CustomOutputView: 'CustomStatementOutput -> Entities.DiscordMessageBuilder
-
+        ViewArgs: CreateViewArgs<'Content, 'CustomStatementOutput>
         CreateGame: IfEngine.State<'Content,'Label> -> Result<Engine<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>, string>
         InitGameState: IfEngine.State<'Content,'Label>
         DbCollectionName: string
@@ -24,7 +24,7 @@ type Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementO
 
 type State<'Content,'Label> =
     {
-        Users: Users.Guilds<'Content,'Label>
+        Users: UserGamesStorage.Guilds<'Content,'Label>
         MvcState: Mvc.Controller.State
     }
 
@@ -65,31 +65,45 @@ module Action =
             >>= fun msg ->
                 preturn (fun x -> f x msg)
 
+[<RequireQualifiedAccess>]
+type ViewComponentState =
+    | GameView of ComponentState
+
+module ViewComponentStatesManager =
+    let create gameViewId =
+        [
+            Interaction.Form.map ViewComponentState.GameView (gameViewId, ComponentState.handler gameViewId)
+        ]
+        |> Map.ofList
+
 type Msg =
     | Request of EventArgs.MessageCreateEventArgs * Action
     | RequestSlashCommand of EventArgs.InteractionCreateEventArgs * Action
-    | ComponentInteractionCreateEventHandler of DiscordClient * EventArgs.ComponentInteractionCreateEventArgs * r: AsyncReplyChannel<bool>
+    // todo: refact: rename to `RequestInteraction`
+    | ComponentInteractionCreateEventHandler of DiscordClient * EventArgs.ComponentInteractionCreateEventArgs * ViewComponentState
 
 let interpView
-    (args: IfEngine.Discord.Index.CreateViewArgs<'Content, 'CustomStatementOutput>)
+    (args: View.CreateViewArgs<'Content, 'CustomStatementOutput>)
     user
-    (view: Model.ViewCmd<'Content, 'CustomStatementOutput>)
+    (view: Model.AbstractView<'Content, 'CustomStatementOutput>)
     : Entities.DiscordMessageBuilder =
 
     match view with
-    | ViewCmd.StartNewGame gameMsg ->
-        IfEngine.Discord.Index.view user gameMsg args
+    | AbstractView.StartNewGame gameMsg ->
+        View.view user gameMsg args
+    | AbstractView.GameBelongsToSomeoneElse args ->
+        View.gameBelongsToSomeoneElseView args
 
 let interp
     api
     (client: DiscordClient)
     (game: Game<'Content,'Label,'CustomStatement,'CustomStatementArg,'CustomStatementOutput>)
-    (req: Model.MyCmd<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
+    (req: Model.AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>)
     (state: State<'Content,'Label>) =
 
     let rec interp cmd state =
         match cmd with
-        | Model.MyCmd.MvcCmd cmd ->
+        | Model.AbstractGame.MvcCmd cmd ->
             let cmd, state' =
                 Mvc.Controller.interp api cmd state.MvcState
 
@@ -100,50 +114,48 @@ let interp
 
             interp cmd state
 
-        | Model.MyCmd.SaveGameStateToDb((userId, gameState), next) ->
+        | Model.AbstractGame.SaveGameStateToDb((userId, gameState), next) ->
             let state =
                 { state with
                     Users =
                         state.Users
-                        |> Users.Guilds.set
+                        |> UserGamesStorage.Guilds.set
                             userId
                             (fun x ->
-                                Users.GuildData.Init
+                                UserGamesStorage.GuildData.Init
                                     (Some gameState)
                             )
                 }
 
             interp (next ()) state
 
-        | Model.MyCmd.LoadGameStateFromDb(userId, next) ->
+        | Model.AbstractGame.LoadGameStateFromDb(userId, next) ->
             let gameState =
                 state.Users
-                |> Users.Guilds.tryFindById userId
+                |> UserGamesStorage.Guilds.tryFindById userId
                 |> Option.bind (fun x -> x.Data.GameState)
 
             interp (next gameState) state
 
-        | Model.MyCmd.GameReq msg ->
-            match msg with
-            | GameReq.StartNewGame((), next) ->
-                let engine =
-                    game.CreateGame game.InitGameState |> Result.get // TODO
+        | Model.AbstractGame.StartNewGame((), next) ->
+            let engine =
+                game.CreateGame game.InitGameState |> Result.get // TODO
 
-                let gameState = engine.GameState
-                let gameOutputMsg = Engine.getCurrentOutputMsg engine
-                let cmd = next (gameState, gameOutputMsg)
-                interp cmd state
+            let gameState = engine.GameState
+            let gameOutputMsg = Engine.getCurrentOutputMsg engine
+            let cmd = next (gameState, gameOutputMsg)
+            interp cmd state
 
-            | GameReq.Update((currentGameState, gameInpugMsg), next) ->
-                let engine =
-                    game.CreateGame currentGameState |> Result.get // TODO
-                    |> Engine.update gameInpugMsg |> Result.get
-                let gameState = engine.GameState
-                let gameOutputMsg = Engine.getCurrentOutputMsg engine
-                let cmd = next (gameState, gameOutputMsg)
-                interp cmd state
+        | Model.AbstractGame.UpdateGame((currentGameState, gameInpugMsg), next) ->
+            let engine =
+                game.CreateGame currentGameState |> Result.get // TODO
+                |> Engine.update gameInpugMsg |> Result.get
+            let gameState = engine.GameState
+            let gameOutputMsg = Engine.getCurrentOutputMsg engine
+            let cmd = next (gameState, gameOutputMsg)
+            interp cmd state
 
-        | Model.MyCmd.End -> state
+        | Model.AbstractGame.End -> state
 
     interp req state
 
@@ -155,13 +167,6 @@ let reduce
     (state: State<'Content,'Label>)
     : State<'Content,'Label> =
 
-    let args: IfEngine.Discord.Index.CreateViewArgs<'Content, 'CustomStatementOutput> =
-        {
-            MessageCyoaId = game.MessageCyoaId
-            ContentToEmbed = game.ContentToEmbed
-            CustomOutputView = game.CustomOutputView
-        }
-
     match msg with
     | Request(e, action) ->
         match action with
@@ -170,9 +175,9 @@ let reduce
             let interp =
                 let api =
                     Mvc.Controller.createMessageApi
-                        (interpView args user)
+                        (interpView game.ViewArgs user)
                         (fun state ->
-                            let req = Model.MyCmd.End
+                            let req = Model.AbstractGame.End
                             req, state
                         )
                         restClient
@@ -182,7 +187,7 @@ let reduce
 
             match act with
             | StartCyoa ->
-                let x = Model.startNewGame user.Id
+                let x = AbstractGame.startNewGame user.Id
                 interp x state
 
     | RequestSlashCommand(e, action) ->
@@ -192,9 +197,9 @@ let reduce
             let interp =
                 let api =
                     Mvc.Controller.createSlashCommandApi
-                        (interpView args user)
+                        (interpView game.ViewArgs user)
                         (fun state ->
-                            let req = Model.MyCmd.End
+                            let req = AbstractGame.Helpers.end'
                             req, state
                         )
                         restClient
@@ -204,38 +209,47 @@ let reduce
 
             match act with
             | StartCyoa ->
-                interp (Model.startNewGame user.Id) state
+                interp (AbstractGame.startNewGame user.Id) state
 
     | ComponentInteractionCreateEventHandler(client, e, replyChannel) ->
-        let commandPrefix = "."
-        let result =
-            IfEngine.Discord.Index.modalHandle
-                game.MessageCyoaId
-                (sprintf "%s%s" commandPrefix game.RawCommandStart)
-                (fun userId gameCommand ->
-                    let user = e.Interaction.User
-                    let interp =
-                        let api =
-                            Mvc.Controller.createComponentInteractionApi
-                                (interpView args user)
-                                (fun state ->
-                                    let req = Model.MyCmd.End
-                                    req, state
-                                )
-                                restClient
-                                e
+        match replyChannel with
+        | ViewComponentState.GameView componentState ->
+            let commandPrefix = "." // todo
 
-                        interp api client game
+            let componentId = componentState.ComponentId
 
-                    interp (Model.updateGame user.Id gameCommand) state
-                )
-                client
-                e
+            let gameCommand =
+                match componentId with
+                | ComponentId.NextButtonId ->
+                    InputMsg.Next
+                | ComponentId.SelectMenuId ->
+                    let selected = int e.Values.[0]
+                    InputMsg.Choice selected
+                | x ->
+                    failwithf "%A componentId not implemented yet!" x
 
-        replyChannel.Reply result.IsHandled
+            let user = e.Interaction.User
+            let interp =
+                let api =
+                    Mvc.Controller.createComponentInteractionApi
+                        (interpView game.ViewArgs user)
+                        (fun state ->
+                            let req = AbstractGame.Helpers.end'
+                            req, state
+                        )
+                        restClient
+                        e
 
-        result.UpdatedGameState
-        |> Option.defaultValue state
+                interp api client game
+
+            interp
+                (AbstractGame.updateGame
+                    commandPrefix
+                    game.RawCommandStart
+                    componentState.Data.OwnerId
+                    user.Id
+                    gameCommand)
+                state
 
 let reduceError msg =
     match msg with
@@ -245,8 +259,8 @@ let reduceError msg =
         | MainActionCmd x ->
             match x with
             | StartCyoa -> ()
-    | ComponentInteractionCreateEventHandler(_, _, r) ->
-        r.Reply true
+    | ComponentInteractionCreateEventHandler(_, _, _) ->
+        ()
 
 let create
     (client: DiscordClient)
@@ -256,7 +270,7 @@ let create
 
     let m =
         let init: State<'Content,'Label> = {
-            Users = Users.Guilds.init game.DbCollectionName db
+            Users = UserGamesStorage.Guilds.init game.DbCollectionName db
             MvcState = Mvc.Controller.State.empty
         }
 
@@ -296,6 +310,45 @@ let create
             startGame
         |]
 
+    let componentInteractionCreateHandler (client: DiscordClient, e: EventArgs.ComponentInteractionCreateEventArgs) =
+        let testIsMessageBelongToBot () next =
+            if e.Message.Author.Id = client.CurrentUser.Id then
+                next ()
+            else
+                false
+
+        let restartComponent errMsg =
+            try
+                DiscordMessage.Ext.clearComponents e.Message
+            with e ->
+                printfn "%A" e.Message
+
+            let b = Entities.DiscordInteractionResponseBuilder()
+            b.Content <-
+                [
+                    sprintf "Вызовите эту комманду еще раз, потому что-то пошло не так:"
+                    "```"
+                    sprintf "%s" errMsg
+                    "```"
+                ] |> String.concat "\n"
+            b.IsEphemeral <- true
+            awaiti <| e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, b)
+
+        pipeBackwardBuilder {
+            do! testIsMessageBelongToBot ()
+
+            let input = e.Id
+
+            let isHandled =
+                Interaction.handleForms
+                    (ViewComponentStatesManager.create game.ViewArgs.MessageCyoaId)
+                    restartComponent
+                    (fun viewAction -> ComponentInteractionCreateEventHandler(client, e, viewAction) |> m.Post)
+                    input
+
+            return isHandled
+        }
+
     { BotModule.empty with
         MessageCreateEventHandleExclude =
             let exec: _ Action.Parser.Parser =
@@ -307,7 +360,7 @@ let create
 
         ComponentInteractionCreateHandle =
             let exec (client, e) =
-                m.PostAndReply(fun r -> ComponentInteractionCreateEventHandler(client, e, r))
+                componentInteractionCreateHandler (client, e)
 
             Some exec
 
