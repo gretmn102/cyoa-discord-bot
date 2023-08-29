@@ -8,10 +8,15 @@
     <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
   </Target>
   <ItemGroup>
+    <Compile Include="IfEngine\Discord\SyntaxTree.fsi" />
     <Compile Include="IfEngine\Discord\SyntaxTree.fs" />
+    <Compile Include="IfEngine\Discord\Model.fsi" />
     <Compile Include="IfEngine\Discord\Model.fs" />
+    <Compile Include="IfEngine\Discord\View.fsi" />
     <Compile Include="IfEngine\Discord\View.fs" />
+    <Compile Include="IfEngine\Discord\UserGamesStorage.fsi" />
     <Compile Include="IfEngine\Discord\UserGamesStorage.fs" />
+    <Compile Include="IfEngine\Discord\Controller.fsi" />
     <Compile Include="IfEngine\Discord\Controller.fs" />
     <Compile Include="MoraiGame.fs" />
     <Compile Include="SomeGame.fs" />

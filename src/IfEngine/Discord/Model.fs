@@ -44,6 +44,7 @@ type AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'Custom
 [<RequireQualifiedAccess>]
 module AbstractGame =
     module Helpers =
+        // todo: refact: rename to `discordApi`
         let mvcCmd fn next =
             AbstractGame.MvcCmd (fn (fun res ->
                 next res
