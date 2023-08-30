@@ -10,25 +10,6 @@ type ComponentId =
     | NextButtonId = 0
     | SelectMenuId = 1
 
-module FsharpMyExtension =
-    module ShowList =
-        open FsharpMyExtension.ShowList
-
-        type IShow =
-            abstract Shows: unit -> ShowS
-
-    module FParsecExt =
-        open FParsec
-
-        val inline parser< ^T, 'UserState when ^T: (static member GetParser: unit -> Parser< ^T, 'UserState >)> :
-            Parser< ^T, 'UserState > when ^T: (static member GetParser: unit -> Parser< ^T, 'UserState >)
-
-    module Deserialization =
-        val inline deserialize:
-            str: string -> Result< ^T, string > when ^T: (static member Deserialize: string -> Result< ^T, string >)
-
-open FsharpMyExtension
-
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module UserId =

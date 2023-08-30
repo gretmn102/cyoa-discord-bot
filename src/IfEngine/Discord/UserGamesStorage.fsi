@@ -1,8 +1,5 @@
 namespace IfEngine.Discord
 
-module Emptyable =
-    val inline empty< ^T when ^T: (static member Empty: ^T)> : ^T when ^T: (static member Empty: ^T)
-
 module UserGamesStorage =
     open MongoDB.Driver
     open DiscordBotExtensions.Db

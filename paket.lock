@@ -17,7 +17,7 @@ NUGET
       FSharpMyExt (>= 2.0.0-prerelease.3)
       FUniversalParser (>= 0.2)
       HtmlAgilityPack (>= 1.11.51)
-    FSharpMyExt (2.0.0-prerelease.3)
+    FSharpMyExt (2.0.0-prerelease.4)
       FParsec (>= 1.1.1)
       FSharp.Core (>= 4.7.2)
       Fuchu (>= 1.1)

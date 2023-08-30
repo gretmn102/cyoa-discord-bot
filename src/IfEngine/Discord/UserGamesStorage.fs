@@ -1,9 +1,5 @@
 namespace IfEngine.Discord
 
-module Emptyable =
-    let inline empty<'T when 'T : (static member Empty: 'T)> =
-        (^T : (static member Empty: 'T) ())
-
 module UserGamesStorage =
     open FsharpMyExtension
     open MongoDB.Driver
@@ -49,7 +45,7 @@ module UserGamesStorage =
     [<RequireQualifiedAccess>]
     module Guilds =
         let createData (id: Id) : Guild<'Content,'Label> =
-            Guild.create id Emptyable.empty
+            Guild.create id empty
 
         let init collectionName (db: IMongoDatabase): Guilds<'Content,'Label> =
             MongoDB.Bson.Serialization.BsonSerializer.RegisterSerializer(
