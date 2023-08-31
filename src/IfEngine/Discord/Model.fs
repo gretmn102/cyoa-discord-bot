@@ -33,7 +33,7 @@ module AbstractView =
 
 [<RequireQualifiedAccess>]
 type AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
-    | MvcCmd of Cmd<AbstractView<'Content, 'CustomStatementOutput>, AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
+    | DiscordApi of Cmd<AbstractView<'Content, 'CustomStatementOutput>, AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
     | StartNewGame of Req<unit, IfEngine.State<'Content,'Label> * OutputMsg<'Content,'CustomStatementOutput>, AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
     | UpdateGame of Req<IfEngine.State<'Content,'Label> * InputMsg<'CustomStatementArg>, IfEngine.State<'Content,'Label> * OutputMsg<'Content,'CustomStatementOutput>, AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
     | SaveGameStateToDb of Req<UserId * IfEngine.State<'Content,'Label>, unit, AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
@@ -45,7 +45,7 @@ type AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'Custom
 module AbstractGame =
     module Helpers =
         let discordApi fn next =
-            AbstractGame.MvcCmd (fn (fun res ->
+            AbstractGame.DiscordApi (fn (fun res ->
                 next res
             ))
 

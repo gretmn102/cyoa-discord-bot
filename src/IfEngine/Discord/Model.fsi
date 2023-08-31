@@ -26,7 +26,7 @@ module AbstractView =
 
 [<RequireQualifiedAccess>]
 type AbstractGame<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
-    | MvcCmd of
+    | DiscordApi of
         Cmd<AbstractView<'Content, 'CustomStatementOutput>, AbstractGame<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
     | StartNewGame of
         Req<unit, IfEngine.State<'Content, 'Label> * OutputMsg<'Content, 'CustomStatementOutput>, AbstractGame<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
