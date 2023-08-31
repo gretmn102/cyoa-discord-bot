@@ -43,7 +43,7 @@ type AbstractGame<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'Cust
 [<RequireQualifiedAccess>]
 module AbstractGame =
     module Helpers =
-        val mvcCmd:
+        val discordApi:
             fn: (('a -> 'b) -> Cmd<AbstractView<'Content, 'CustomStatementOutput>, AbstractGame<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>) ->
             next: ('a -> 'b) ->
                 AbstractGame<'Content, 'Label, 'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>
