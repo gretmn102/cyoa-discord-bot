@@ -305,7 +305,7 @@ let (scenario: Scenario<NarratorCommonContent, Label, CustomStatement>) =
             jungleMenu [
                 p [[ text "Привет, путник! Какую сказку хочешь послушать?"]]
             ] [
-                choice "Про кукол, незнающих меры (в процессе)" [
+                choice "Про кукол, незнающих меры" [
                     jump StartTaleAboutDolls
                 ]
             ]
