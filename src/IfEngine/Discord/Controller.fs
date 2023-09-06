@@ -103,7 +103,7 @@ let interp
 
     let rec interp cmd state =
         match cmd with
-        | Model.AbstractGame.MvcCmd cmd ->
+        | Model.AbstractGame.DiscordApi cmd ->
             let cmd, state' =
                 Mvc.Controller.interp api cmd state.MvcState
 

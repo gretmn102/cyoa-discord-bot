@@ -33,7 +33,7 @@ module AbstractView =
 
 [<RequireQualifiedAccess>]
 type AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
-    | MvcCmd of Cmd<AbstractView<'Content, 'CustomStatementOutput>, AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
+    | DiscordApi of Cmd<AbstractView<'Content, 'CustomStatementOutput>, AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
     | StartNewGame of Req<unit, IfEngine.State<'Content,'Label> * OutputMsg<'Content,'CustomStatementOutput>, AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
     | UpdateGame of Req<IfEngine.State<'Content,'Label> * InputMsg<'CustomStatementArg>, IfEngine.State<'Content,'Label> * OutputMsg<'Content,'CustomStatementOutput>, AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
     | SaveGameStateToDb of Req<UserId * IfEngine.State<'Content,'Label>, unit, AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput>>
@@ -44,8 +44,8 @@ type AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'Custom
 [<RequireQualifiedAccess>]
 module AbstractGame =
     module Helpers =
-        let mvcCmd fn next =
-            AbstractGame.MvcCmd (fn (fun res ->
+        let discordApi fn next =
+            AbstractGame.DiscordApi (fn (fun res ->
                 next res
             ))
 
@@ -68,7 +68,7 @@ module AbstractGame =
         pipeBackwardBuilder {
             if ownerId <> userId then
                 let! _ =
-                    Helpers.mvcCmd
+                    Helpers.discordApi
                         (Cmd.responseCreateView
                             true
                             (GameBelongsToSomeoneElseViewArgs.create ownerId commandPrefix rawCommandName
@@ -81,7 +81,7 @@ module AbstractGame =
     let startNewGame (userId: UserId) : AbstractGame<'Content,'Label,'CustomStatement, 'CustomStatementArg, 'CustomStatementOutput> =
         pipeBackwardBuilder {
             let! gameState, gameOutputMsg = Helpers.startNewGame ()
-            let! _ = Helpers.mvcCmd (Cmd.responseCreateView false (AbstractView.StartNewGame gameOutputMsg))
+            let! _ = Helpers.discordApi (Cmd.responseCreateView false (AbstractView.StartNewGame gameOutputMsg))
             let! _ = Helpers.saveGameStateToDb userId gameState
             return Helpers.end'
         }
@@ -93,7 +93,7 @@ module AbstractGame =
             match gameState with
             | Some gameState ->
                 let! gameState, gameOutputMsg = Helpers.update gameState gameInputMsg
-                let! _ = Helpers.mvcCmd (Cmd.responseUpdateCurrentView (AbstractView.StartNewGame gameOutputMsg))
+                let! _ = Helpers.discordApi (Cmd.responseUpdateCurrentView (AbstractView.StartNewGame gameOutputMsg))
                 let! _ = Helpers.saveGameStateToDb userId gameState
                 return Helpers.end'
             | None ->

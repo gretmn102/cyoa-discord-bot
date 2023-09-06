@@ -45,6 +45,7 @@
             "label": "RunTests",
             "type": "shell",
             "command": "dotnet",
+            "options": { "env": { "PAKET_SKIP_RESTORE_TARGETS": "true" } },
             "args": [
                 "fake",
                 "build",
