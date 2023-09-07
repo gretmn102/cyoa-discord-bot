@@ -1,3 +1,4 @@
+module Tests.Main
 open Fuchu
 open FsharpMyExtension
 open FsharpMyExtension.Either
